@@ -130,4 +130,5 @@ dmypy.json
 
 # .idea
 .idea
-.backend_old-УДАЛИТЬ!/
+
+backend_old/
