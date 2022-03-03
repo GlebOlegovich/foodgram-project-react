@@ -46,7 +46,7 @@ User = get_user_model()
 #             status=status.HTTP_400_BAD_REQUEST
 #         )
 
-
+# НЕ СДЕЛАНО ИЗМЕНЕНИЕ ПАРОЛЯ!
 @action(detail=True, methods=['LIST', 'POST'])
 class UserViewSet(mixins.ListModelMixin,
                   mixins.RetrieveModelMixin,

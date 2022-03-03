@@ -2,6 +2,9 @@ from django.core import validators
 from django.utils.deconstruct import deconstructible
 
 
+# Надо сделать ограничение на юзернейм, только Английский алфавит!
+
+
 @deconstructible
 class UsernameValidator(validators.RegexValidator):
     regex = r"^[\w.@+-]+$"
