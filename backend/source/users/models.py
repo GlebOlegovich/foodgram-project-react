@@ -1,14 +1,17 @@
+
 from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 
-from Foodgram.settings import GLOBAL_SETTINGS
+from config.settings import GLOBAL_SETTINGS
 
-from .validators import NotMeUsername, UsernameValidator
+from .validators import NotMeUsernameValidator, UsernameValidator
+# from .fields import LowercaseEmailField, LowercaseUsernameField
+from .managers import CustomUserManager
 
 
 class User(AbstractUser):
 
+    # username = LowercaseUsernameField(
     username = models.CharField(
         "Username",
         max_length=150,
@@ -19,8 +22,8 @@ class User(AbstractUser):
             "алфавита [a-z A-Z], цифр [0-9] и спецсимволов: [ @ + - ]"
         ),
         validators=[
-            UnicodeUsernameValidator(),
-            NotMeUsername(),
+            # UnicodeUsernameValidator(),
+            NotMeUsernameValidator(),
             UsernameValidator()
         ],
         error_messages={
@@ -34,6 +37,9 @@ class User(AbstractUser):
         "Электронная почта",
         unique=True,
         max_length=254,
+        error_messages={
+            'unique': "Пользователь с таким email уже создан",
+        }
     )
 
     first_name = models.CharField(
@@ -50,6 +56,7 @@ class User(AbstractUser):
         choices=GLOBAL_SETTINGS["ROLE"],
         default=GLOBAL_SETTINGS["user"]
     )
+    objects = CustomUserManager()
 
     class Meta:
         ordering = ["id"]
@@ -59,7 +66,3 @@ class User(AbstractUser):
     @property
     def _is_admin(self):
         return self.role == GLOBAL_SETTINGS["admin"] or self.is_superuser
-
-    # @property
-    # def _is_moderator(self):
-    #     return self.role == GLOBAL_SETTINGS["moderator"] or self._is_admin
