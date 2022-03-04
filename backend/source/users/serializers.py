@@ -6,12 +6,34 @@ User = get_user_model()
 
 
 class UsersListSerialiser(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'email', 'id', 'username', "first_name", "last_name", "is_subscribed"
+        )
+
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request', None)
+        if (
+            request
+            and hasattr(request, "user")
+            and request.user.is_authenticated
+        ):
+            user_follows = request.user.follower.all()
+            return user_follows.filter(author=obj).exists()
+        else:
+            # Я хз что еще возвращать, если не авторизован
+            return False
+
+
+class UserInfoSerialiser(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
             'email', 'id', 'username', "first_name", "last_name"
         )
-
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:

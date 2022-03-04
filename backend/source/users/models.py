@@ -66,3 +66,37 @@ class User(AbstractUser):
     @property
     def _is_admin(self):
         return self.role == GLOBAL_SETTINGS["admin"] or self.is_superuser
+
+
+class Follow(models.Model):
+    '''
+    Модель подписок\n
+    Пользователь, который подписывается - user\n
+    На кого подписывается - author
+    '''
+    # Пользователь, который подписывается
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь - кто подписан',
+        related_name='follower'
+    )
+    # Не очень уверен в такой реализации, в БД будет много записей очень
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь - на кого подписан',
+        related_name='following'
+    )
+
+    class Meta:
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'user'],
+                name='Follow_unique'
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.user} follows {self.author}"

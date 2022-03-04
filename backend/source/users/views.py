@@ -9,6 +9,7 @@ from .serializers import (
     # GetTokenSerialiser,
     UsersListSerialiser,
     UserRegistrationSerializer,
+    UserInfoSerialiser,
                           )
 from .paginators import UsersCustomPagination
 from .mixins import CreateUserMixin
@@ -59,6 +60,12 @@ class UserViewSet(mixins.ListModelMixin,
     pagination_class = UsersCustomPagination
 
     def get_serializer_class(self):
+        # if self.action in ('me',):
+        #     return UserInfoSerialiser
+
+        # Было бы круто сделать переадресацию, по типу:
+        # Запрос от юзера с id = 3, на страницу users/3
+        # Что бы редиректило на users/me
         if self.action in ('list', 'retrieve', 'me'):
             return UsersListSerialiser
         if self.action in ('create',):
@@ -67,7 +74,7 @@ class UserViewSet(mixins.ListModelMixin,
     @action(
         detail=False,
         methods=['get'],
-        serializer_class=UsersListSerialiser,
+        serializer_class=UserInfoSerialiser,
         permission_classes=[IsAuthenticated],
     )
     def me(self, request):
