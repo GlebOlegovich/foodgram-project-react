@@ -17,7 +17,7 @@ class CustomUserManager(BaseUserManager):
             raise ValueError("The given username must be set")
         username = self.normalize_username(username).lower()
         if not password:
-            raise ValueError('Введите пароль!')
+            raise ValueError("Введите пароль!")
         user = self.model(
             email=email,
             username=username,

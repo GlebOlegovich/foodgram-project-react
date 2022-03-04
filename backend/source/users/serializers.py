@@ -11,11 +11,11 @@ class UsersListSerialiser(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'email', 'id', 'username', "first_name", "last_name", "is_subscribed"
+            "email", "id", "username", "first_name", "last_name", "is_subscribed"
         )
 
     def get_is_subscribed(self, obj):
-        request = self.context.get('request', None)
+        request = self.context.get("request", None)
         if (
             request
             and hasattr(request, "user")
@@ -32,13 +32,13 @@ class UserInfoSerialiser(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'email', 'id', 'username', "first_name", "last_name"
+            "email", "id", "username", "first_name", "last_name"
         )
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'username', 'password', 'first_name', 'last_name']
+        fields = ["email", "username", "password", "first_name", "last_name"]
 
     def validate_username(self, value):
         lower_username = value.lower()
@@ -64,20 +64,20 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     # Метод для сохранения нового пользователя
     def save(self, *args, **kwargs):
         # Проверяем на валидность пароль
-        password = self.validated_data['password']
+        password = self.validated_data["password"]
         user = User.objects.create_user(
-            email=self.validated_data['email'],
-            username=self.validated_data['username'],
-            first_name=self.validated_data['first_name'],
-            last_name=self.validated_data['last_name'],
+            email=self.validated_data["email"],
+            username=self.validated_data["username"],
+            first_name=self.validated_data["first_name"],
+            last_name=self.validated_data["last_name"],
             password=password
         )
         # Через создание объекта модели
         # user = User(
-        #     email=self.validated_data['email'],
-        #     username=self.validated_data['username'],
-        #     first_name=self.validated_data['first_name'],
-        #     last_name=self.validated_data['last_name'],
+        #     email=self.validated_data["email"],
+        #     username=self.validated_data["username"],
+        #     first_name=self.validated_data["first_name"],
+        #     last_name=self.validated_data["last_name"],
         # )
         # # Сохраняем пароль
         # user.set_password(password)
