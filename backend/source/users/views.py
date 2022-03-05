@@ -1,6 +1,5 @@
-import inspect
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets, mixins
+from rest_framework import status, viewsets, mixins, generics
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -19,11 +18,19 @@ from .mixins import CreateUserMixin
 User = get_user_model()
 
 
-# class ListUsers(generics.ListAPIView):
-#     permission_classes = (AllowAny,)
-#     queryset = User.objects.all()
-#     serializer_class = UsersListSerialiser
-#     pagination_class = UsersCustomPagination
+class ListSubscriptions(generics.ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    # queryset = request.user.objects.following.all()
+    # Надо добавить еще рецепты юзеров что бы выводились
+    serializer_class = UsersListSerialiser
+    pagination_class = UsersCustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        user_is_follower = user.follower.all()
+        followings = User.objects.filter(
+            id__in=user_is_follower.values('author')).all()
+        return followings
 
 # @api_view(["POST"])
 # @permission_classes((AllowAny,))
@@ -48,6 +55,7 @@ User = get_user_model()
 #             serializer.errors,
 #             status=status.HTTP_400_BAD_REQUEST
 #         )
+
 
 @action(detail=True, methods=["LIST", "POST"])
 class UserViewSet(mixins.ListModelMixin,
@@ -95,6 +103,7 @@ class UserViewSet(mixins.ListModelMixin,
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+# Post & Delete
 class Subscribe(APIView):
     permission_classes = (IsAuthenticated,)
 

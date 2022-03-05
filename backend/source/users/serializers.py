@@ -16,6 +16,8 @@ class UsersListSerialiser(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         request = self.context.get("request", None)
+        # recipes_limit из квери параметров
+        # print(request.GET['recipes_limit'])
         if (
             request
             and hasattr(request, "user")
@@ -34,6 +36,7 @@ class UserInfoSerialiser(serializers.ModelSerializer):
         fields = (
             "email", "id", "username", "first_name", "last_name"
         )
+
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
