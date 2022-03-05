@@ -17,21 +17,6 @@ from .mixins import CreateUserMixin
 
 User = get_user_model()
 
-
-class ListSubscriptions(generics.ListAPIView):
-    permission_classes = (IsAuthenticated,)
-    # queryset = request.user.objects.following.all()
-    # Надо добавить еще рецепты юзеров что бы выводились
-    serializer_class = UsersListSerialiser
-    pagination_class = UsersCustomPagination
-
-    def get_queryset(self):
-        user = self.request.user
-        user_is_follower = user.follower.all()
-        followings = User.objects.filter(
-            id__in=user_is_follower.values('author')).all()
-        return followings
-
 # @api_view(["POST"])
 # @permission_classes((AllowAny,))
 # def registration_user(request):
@@ -226,3 +211,18 @@ class Subscribe(APIView):
             return response
         user._unfollow(author)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ListSubscriptions(generics.ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    # queryset = request.user.objects.following.all()
+    # Надо добавить еще рецепты юзеров что бы выводились
+    serializer_class = UsersListSerialiser
+    pagination_class = UsersCustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        user_is_follower = user.follower.all()
+        followings = User.objects.filter(
+            id__in=user_is_follower.values('author')).all()
+        return followings
