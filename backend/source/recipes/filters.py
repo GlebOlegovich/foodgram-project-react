@@ -1,8 +1,13 @@
 import django_filters as filters
 from django.db.models import Case, IntegerField, Q, When
 from django_filters import CharFilter
+from django.contrib.auth import get_user_model
+
 
 from recipes.models import Ingredient, Recipe
+
+
+User = get_user_model()
 
 
 class IngredientFilter(filters.FilterSet):
@@ -37,3 +42,16 @@ class IngredientFilter(filters.FilterSet):
             )
             .order_by("order")
         )
+
+
+class RecipeFilter(filters.FilterSet):
+    tags = filters.AllValuesMultipleFilter(
+        field_name='tags__slug'
+    )
+    author = filters.ModelChoiceFilter(
+        queryset=User.objects.all()
+    )
+
+    class Meta:
+        model = Recipe
+        fields = ['tags', 'author']

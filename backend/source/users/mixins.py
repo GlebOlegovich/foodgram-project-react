@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.mixins import CreateModelMixin
 
-from .serializers import UsersListSerialiser
+from .serializers import UserInfoSerialiser
 
 
 class CreateUserMixin(CreateModelMixin):
@@ -11,7 +11,7 @@ class CreateUserMixin(CreateModelMixin):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = self.perform_create(serializer)
-        instance_serializer = UsersListSerialiser(instance)
+        instance_serializer = UserInfoSerialiser(instance)
         headers = self.get_success_headers(serializer.data)
         return Response(
             instance_serializer.data,

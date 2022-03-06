@@ -22,6 +22,7 @@ ALLOWED_HOSTS = ["*"]
 
 AUTH_USER_MODEL = 'users.User'
 
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -29,14 +30,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     "rest_framework",
     'rest_framework.authtoken',
     'django_filters',
     'djoser',
+
     'api',
     'authentication',
     'users',
-    'recipes'
+    'recipes',
+    'favs_N_shopping',
 ]
 
 MIDDLEWARE = [
@@ -125,7 +129,7 @@ REST_FRAMEWORK = {
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-ru'
 
 TIME_ZONE = 'UTC'
 
@@ -135,11 +139,8 @@ USE_L10N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.2/howto/static-files/
-
-STATIC_URL = '/static/'
+# Это по дефолту вроде бы итак стоит
+AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
 
 DJOSER = {
     # 'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
@@ -147,9 +148,9 @@ DJOSER = {
     # 'ACTIVATION_URL': '#/activate/{uid}/{token}',
     'LOGIN_FIELD': 'email',
     'SEND_ACTIVATION_EMAIL': False,
-    'SERIALIZERS': {
-         'user_create': 'users.serializers.UserRegistrationSerializer'
-    }
+    # 'SERIALIZERS': {
+    #      'user_create': 'users.serializers.UserRegistrationSerializer'
+    # }
 }
 
 GLOBAL_SETTINGS = {
@@ -164,3 +165,9 @@ GLOBAL_SETTINGS = {
     # "moderator": "moderator",
     "user": "user",
 }
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

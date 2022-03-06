@@ -6,12 +6,13 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .models import Follow
 from .serializers import (
     # GetTokenSerialiser,
     UsersListSerialiser,
     UserRegistrationSerializer,
     UserInfoSerialiser,
-                          )
+)
 from .paginators import UsersCustomPagination
 from .mixins import CreateUserMixin
 
@@ -68,8 +69,8 @@ class UserViewSet(mixins.ListModelMixin,
 
     @action(
         detail=False,
-        methods=["get"],
-        serializer_class=UserInfoSerialiser,
+        methods=["get", ],
+        # serializer_class=UserInfoSerialiser,
         permission_classes=[IsAuthenticated],
     )
     def me(self, request):
@@ -88,8 +89,9 @@ class UserViewSet(mixins.ListModelMixin,
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-# Post & Delete
-class Subscribe(APIView):
+class SubscribeViewset(APIView):
+    """Подписка - отписка (POST - DELETE запрос)
+    """
     permission_classes = (IsAuthenticated,)
 
     def _get_author_and_user(self, request, author_id):
@@ -214,6 +216,8 @@ class Subscribe(APIView):
 
 
 class ListSubscriptions(generics.ListAPIView):
+    """Список подписок, GET запрос
+    """
     permission_classes = (IsAuthenticated,)
     # queryset = request.user.objects.following.all()
     # Надо добавить еще рецепты юзеров что бы выводились
@@ -222,7 +226,10 @@ class ListSubscriptions(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
+
         user_is_follower = user.follower.all()
         followings = User.objects.filter(
             id__in=user_is_follower.values('author')).all()
+        # или так
+        # followings = Follow.objects.filter(user=user).all()
         return followings
