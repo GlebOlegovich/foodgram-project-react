@@ -1,17 +1,20 @@
 from rest_framework import filters, status, viewsets, mixins
 from django.db.models import Exists, OuterRef
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.generics import get_object_or_404
+from rest_framework.response import Response
+from django.http.response import HttpResponse
 
 from favs_N_shopping.models import Favorites, Purchase
+from favs_N_shopping.serializers import FavoritesSerializer, PurchaseSerializer
 from .models import Ingredient, Tag, Recipe, IngredientInRecipe
 from .serializers import IngredientSerializer, TagSerializer, RecipeSerializer
 from .paginators import RecipesCustomPagination
 from .filters import IngredientFilter, RecipeFilter
-from .permissions import IsOwnerOrAdminOrReadOnly
+from .permissions import IsOwnerOrAdminOrReadOnly, IsOwnerOrReadOnly
 
 
-# Переделать этот вьюсет, с использованием фильтрации
 @action(detail=True)
 class IngredientViewSet(mixins.ListModelMixin,
                         mixins.RetrieveModelMixin,
@@ -35,18 +38,6 @@ class IngredientViewSet(mixins.ListModelMixin,
     #         queryset = queryset.filter(name__startswith=keywords)
     #     return queryset
 
-# class IngredientViewSet(
-#     mixins.ListModelMixin,
-#     mixins.RetrieveModelMixin,
-#     viewsets.GenericViewSet,
-# ):
-#     queryset = Ingredient.objects.all()
-#     serializer_class = IngredientSerializer
-#     permission_classes = (permissions.AllowAny,)
-#     pagination_class = None
-#     filter_backends = (DjangoFilterBackend,)
-#     filter_class = IngredientFilter
-
 
 @action(detail=True)
 class TagViewSet(mixins.ListModelMixin,
@@ -62,12 +53,11 @@ class RecipeViewSet(mixins.ListModelMixin,
                     mixins.RetrieveModelMixin,
                     mixins.DestroyModelMixin,
                     mixins.UpdateModelMixin,
+                    mixins.CreateModelMixin,
                     viewsets.GenericViewSet):
-    queryset = Recipe.objects.all()
-    permission_classes = [IsOwnerOrAdminOrReadOnly, ]
+    permission_classes = [IsOwnerOrReadOnly, ]
     serializer_class = RecipeSerializer
     pagination_class = RecipesCustomPagination
-    # ordering_fields = ('id',)
     lookup_url_kwarg = "id"
     filter_class = RecipeFilter
 
@@ -77,7 +67,15 @@ class RecipeViewSet(mixins.ListModelMixin,
     def get_queryset(self):
         user = self.request.user
 
-        if user.is_anonymous:
+        need_favorited = self.request.GET.get('is_favorited', False)
+        need_in_shopping_cart = self.request.GET.get(
+            'is_in_shopping_cart',
+            False
+        )
+        if (
+            user.is_anonymous
+            or not (need_favorited or need_in_shopping_cart)
+        ):
             return Recipe.objects.all()
 
         # Тут мы анотируем объекты рецепров полями is_favorited и
@@ -86,7 +84,6 @@ class RecipeViewSet(mixins.ListModelMixin,
         # Избранного / Покупок у user из реквеста
         queryset = Recipe.objects.annotate(
             # Что то новенькое...
-
             # OuterRef -
             # https://djangodoc.ru/3.2/ref/models/expressions/
             # #referencing-columns-from-the-outer-queryset
@@ -101,12 +98,87 @@ class RecipeViewSet(mixins.ListModelMixin,
                 user=user, recipe_id=OuterRef('pk')
             ))
         )
-        # if self.request.query_params.get('is_favorited'):
-        if self.request.GET.get('is_favorited'):
-            return queryset.filter(is_favorited=True)
-        # if self.request.query_params.get('is_in_shopping_cart'):
-        elif self.request.GET.get('is_in_shopping_cart'):
-            return queryset.filter(is_in_shopping_cart=True)
+        # need_favorited = self.request.GET.get('is_favorited', False)
+        # need_in_shopping_cart = self.request.GET.get(
+        #     'is_in_shopping_cart',
+        #     False
+        # )
+        if need_favorited and need_favorited != '0':
+            need_favorited = True
+        else:
+            need_favorited = False
+        if need_in_shopping_cart and need_in_shopping_cart != '0':
+            need_in_shopping_cart = True
+        else:
+            need_in_shopping_cart = False
 
-        return queryset
+        # Касаемо префетч не уверен
+        return queryset.filter(
+            is_favorited=need_favorited,
+            is_in_shopping_cart=need_in_shopping_cart
+        ).select_related('author').prefetch_related('tags', 'ingredients')
 
+    @action(
+        detail=True, methods=['post', ],
+        permission_classes=[IsAuthenticated]
+    )
+    def favorite(self, request, id=None):
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=id)
+
+        data = {
+            'user': user.id,
+            'recipe': recipe.id,
+        }
+        serializer = FavoritesSerializer(
+            data=data,
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    # https://stackoverflow.com/questions/62084905/how-to-make-delete-method-in-django-extra-action
+    @favorite.mapping.delete
+    def delete_favorite(self, request, id=None):
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=id)
+        favorites = get_object_or_404(
+            Favorites, user=user, recipe=recipe
+        )
+        favorites.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=True, methods=['post', ],
+        permission_classes=[IsAuthenticated]
+    )
+    def shopping_cart(self, request, id=None):
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=id)
+
+        data = {
+            'user': user.id,
+            'recipe': recipe.id,
+        }
+        serializer = PurchaseSerializer(
+            data=data,
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @shopping_cart.mapping.delete
+    def delete_shopping_cart(self, request, id=None):
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=id)
+        favorites = get_object_or_404(
+            Purchase, user=user, recipe=recipe
+        )
+        favorites.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)

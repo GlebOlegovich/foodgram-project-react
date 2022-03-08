@@ -1,6 +1,9 @@
+import os
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator 
+from django.dispatch import receiver
+
 
 from .validators import TagSlugValidator, HexColorValidator
 
@@ -35,13 +38,13 @@ class Tag(models.Model):
     )
     color = models.CharField(
         max_length=7,
-        validators=[HexColorValidator(),],
+        validators=[HexColorValidator(), ],
         unique=True
     )
     slug = models.CharField(
         'Уникальный слаг',
         max_length=200,
-        validators=[TagSlugValidator(),],
+        validators=[TagSlugValidator(), ],
         unique=True
     )
 
@@ -57,10 +60,14 @@ class Tag(models.Model):
         return f"{self.name} - {self.slug}"
 
 
+def get_sentinel_user():
+    return User.objects.get_or_create(username='deleted')[0]
+
+
 class Recipe(models.Model):
     author = models.ForeignKey(
         User,
-        on_delete=models.CASCADE,
+        on_delete=models.SET(get_sentinel_user),
         verbose_name="Автор рецепта",
         related_name="recipes"
     )
@@ -72,10 +79,10 @@ class Recipe(models.Model):
             'unique': ("Рецепт с таким названием уже создан."),
         },
     )
-    # image = models.ImageField(
-    #     verbose_name='Изображение',
-    #     upload_to='recipes/',
-    # )
+    image = models.ImageField(
+        verbose_name='Изображение',
+        upload_to='recipes/',
+    )
     text = models.TextField(
         'Описание рецепта'
     )
@@ -111,6 +118,11 @@ class Recipe(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    # Неожиданно для себя, понял что так работает)
+    # Удаляет старые изображения из файловой системы
+    def delete_image(self):
+        self.image.delete()
 
 
 class IngredientInRecipe(models.Model):

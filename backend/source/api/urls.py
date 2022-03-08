@@ -4,6 +4,8 @@ from django.urls import include, path
 from recipes.views import IngredientViewSet, TagViewSet, RecipeViewSet
 from rest_framework.routers import DefaultRouter
 
+from authentication.views import UpdatePassword
+
 app_name = 'api'
 
 router = DefaultRouter()
@@ -26,8 +28,11 @@ router.register(
 )
 
 urlpatterns = [
-    path('', include(router.urls)),
-    path('users/', include('users.urls')),
+    path("users/set_password/", UpdatePassword.as_view(), name="set_password"),
+    path('users/', include('users.urls'), name='users'),
+
     path('auth/', include('authentication.urls')),
+
+    path('', include(router.urls)),
 
 ]

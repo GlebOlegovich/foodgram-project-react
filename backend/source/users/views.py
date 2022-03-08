@@ -1,47 +1,22 @@
-from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets, mixins, generics
+from django.shortcuts import get_object_or_404, redirect
+from rest_framework import status, viewsets, mixins, generics, views
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.urls import reverse
 
-from .models import Follow
 from .serializers import (
-    # GetTokenSerialiser,
     UsersListSerialiser,
-    UserRegistrationSerializer,
     UserInfoSerialiser,
+    UserRegistrationSerializer,
+    FollowerSerializer
 )
 from .paginators import UsersCustomPagination
 from .mixins import CreateUserMixin
 
 User = get_user_model()
-
-# @api_view(["POST"])
-# @permission_classes((AllowAny,))
-# def registration_user(request):
-#     serializer = UserRegistrationSerializer(data=request.data)
-#     if serializer.is_valid(raise_exception=True):
-#         user = serializer.save()
-#         return Response(
-#             {
-#                 "email": user.email,
-#                 "id": user.id,
-#                 "username": user.username,
-#                 "first_name": user.first_name,
-#                 "last_name": user.last_name
-#             },
-#             status=status.HTTP_201_CREATED
-#         )
-#     # valid_data = dict(serializer.validated_data)
-#     # user = User()
-#     else:
-#         return Response(
-#             serializer.errors,
-#             status=status.HTTP_400_BAD_REQUEST
-#         )
-
 
 @action(detail=True, methods=["LIST", "POST"])
 class UserViewSet(mixins.ListModelMixin,
@@ -52,26 +27,35 @@ class UserViewSet(mixins.ListModelMixin,
     lookup_url_kwarg = "id"
     permission_classes = (AllowAny,)
     queryset = User.objects.all()
-    serializer_class = UsersListSerialiser
+    # serializer_class = UsersListSerialiser
     pagination_class = UsersCustomPagination
 
     def get_serializer_class(self):
-        # if self.action in ("me",):
-        #     return UserInfoSerialiser
-
         # Было бы круто сделать переадресацию, по типу:
         # Запрос от юзера с id = 3, на страницу users/3
         # Что бы редиректило на users/me
-        if self.action in ("list", "retrieve", "me"):
+        if self.action in ("me"):
+            return UserInfoSerialiser
+        elif self.action in ("list", "retrieve", "me"):
             return UsersListSerialiser
-        if self.action in ("create",):
+        elif self.action in ("create",):
             return UserRegistrationSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        if (
+            request.user.is_authenticated
+            and request.user.id == int(kwargs.get('id', -1))
+        ):
+            print(
+                "ВЫ перешли на свою страницу, а как вас редиректнуть на me - я хз"
+            )
+        return super().retrieve(request, *args, **kwargs)
 
     @action(
         detail=False,
         methods=["get", ],
-        # serializer_class=UserInfoSerialiser,
         permission_classes=[IsAuthenticated],
+        # url_name="me"
     )
     def me(self, request):
         user = request.user
@@ -164,7 +148,6 @@ class SubscribeViewset(APIView):
     # Подписаться
     def post(self, request, author_id):
         author, user = self._get_author_and_user(request, author_id)
-        # print(inspect.currentframe().f_code.co_name)
         is_following, message_is_following = (
             self._check_user_is_following_author(user, author)
         )
@@ -183,8 +166,10 @@ class SubscribeViewset(APIView):
         )
         if send:
             return response
+
         user._follow(author)
-        serializer = UsersListSerialiser(author)
+        # serializer = UsersListSerialiser(author, context={'request': request})
+        serializer = FollowerSerializer(author, context={'request': request})
         return Response(
             serializer.data,
             status=status.HTTP_201_CREATED
@@ -216,12 +201,11 @@ class SubscribeViewset(APIView):
 
 
 class ListSubscriptions(generics.ListAPIView):
-    """Список подписок, GET запрос
-    """
+    """ Список подписок, GET запрос """
     permission_classes = (IsAuthenticated,)
     # queryset = request.user.objects.following.all()
     # Надо добавить еще рецепты юзеров что бы выводились
-    serializer_class = UsersListSerialiser
+    serializer_class = FollowerSerializer # UsersListSerialiser
     pagination_class = UsersCustomPagination
 
     def get_queryset(self):

@@ -5,11 +5,14 @@ from django.db import models
 
 from config.settings import GLOBAL_SETTINGS
 
-from .validators import NotMeUsernameValidator, UsernameValidator
+from .validators import NotMeUsernameValidator, UsernameValidator, NotDeletedUsernameValidator
 # from .fields import LowercaseEmailField, LowercaseUsernameField
 from .managers import CustomUserManager
 
 
+# Пример по созданию кастомной модели юзера
+# https://webdevblog.ru/
+# sovremennyj-sposob-sozdanie-polzovatelskoj-modeli-user-v-django/
 class User(AbstractUser):
 
     # username = LowercaseUsernameField(
@@ -25,7 +28,8 @@ class User(AbstractUser):
         validators=[
             # UnicodeUsernameValidator(),
             NotMeUsernameValidator(),
-            UsernameValidator()
+            UsernameValidator(),
+            NotDeletedUsernameValidator()
         ],
         error_messages={
             "unique": (

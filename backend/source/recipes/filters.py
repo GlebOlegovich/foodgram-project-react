@@ -22,6 +22,9 @@ class IngredientFilter(filters.FilterSet):
         # Квери параметр
         fields = ["name"]
 
+    # **В качестве усложнения** можно сделать двойную фильтрацию:
+    #     - по вхождению в начало названия;
+    #     - по вхождению в произвольном месте.
     @staticmethod
     def name_filter(queryset, name, value):
         return (
@@ -48,6 +51,8 @@ class RecipeFilter(filters.FilterSet):
     tags = filters.AllValuesMultipleFilter(
         field_name='tags__slug'
     )
+
+    #          ForeignKey by default
     author = filters.ModelChoiceFilter(
         queryset=User.objects.all()
     )
