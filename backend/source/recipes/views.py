@@ -121,6 +121,8 @@ class RecipeViewSet(mixins.ListModelMixin,
         # )
         if need_favorited and need_favorited != '0':
             need_favorited = True
+        # У меня тут получается если проставить &is_in_shopping_cart=0,
+        # и есть уже избранные рецепты - они исключатся
         else:
             need_favorited = False
         if need_in_shopping_cart and need_in_shopping_cart != '0':
