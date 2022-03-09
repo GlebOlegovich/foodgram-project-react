@@ -3,11 +3,13 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+import recipes as recipes
 from config.settings import GLOBAL_SETTINGS
 
-from .validators import NotMeUsernameValidator, UsernameValidator, NotDeletedUsernameValidator
-# from .fields import LowercaseEmailField, LowercaseUsernameField
 from .managers import CustomUserManager
+# from recipes.models import IngredientInRecipe
+from .validators import (NotDeletedUsernameValidator, NotMeUsernameValidator,
+                         UsernameValidator)
 
 
 # Пример по созданию кастомной модели юзера
@@ -89,6 +91,43 @@ class User(AbstractUser):
             user=self,
             author=obj
         ).delete()
+
+    @property
+    def _get_user_shopping_cart(self):
+        shopping_cart = self.purchases.all()
+        if not shopping_cart.exists():
+            return None
+        list = {'recipes_in_cart': []}
+        purchases = {}
+        for item in shopping_cart:
+            recipe = item.recipe
+            # recipe_name = recipe.name
+            if recipe.name not in list['recipes_in_cart']:
+                list['recipes_in_cart'].append(recipe)
+            # Пришлось делать костыиль, если делал
+            # from recipes.models import IngredientInRecipe
+            # кидало ошибку
+            # django.core.exceptions.ImproperlyConfigured: AUTH_USER_MODEL
+            # refers to model'users.User' that has not been installed
+            ingredients = recipes.models.IngredientInRecipe.objects.filter(
+                recipe=recipe
+            )
+            for ingredient in ingredients:
+                amount = ingredient.amount
+                name = ingredient.ingredient.name
+                measurement_unit = ingredient.ingredient.measurement_unit
+                if name not in purchases:
+                    purchases[name] = {
+                        'measurement_unit': measurement_unit,
+                        'amount': amount
+                    }
+                else:
+                    purchases[name]['amount'] += amount
+                    # (
+                    #     list[name]['amount'] + amount
+                    # )
+        list['purchases'] = purchases
+        return list
 
     def __str__(self) -> str:
         return self.username

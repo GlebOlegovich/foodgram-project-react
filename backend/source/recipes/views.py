@@ -1,18 +1,34 @@
-from rest_framework import filters, status, viewsets, mixins
-from django.db.models import Exists, OuterRef
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.generics import get_object_or_404
-from rest_framework.response import Response
-from django.http.response import HttpResponse
+import itertools
+import os
 
+from django.contrib.auth import get_user_model
+from django.db.models import Exists, OuterRef
+from django.http.response import HttpResponse
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen.canvas import Canvas
+from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+
+from config.settings import BASE_DIR
 from favs_N_shopping.models import Favorites, Purchase
 from favs_N_shopping.serializers import FavoritesSerializer, PurchaseSerializer
-from .models import Ingredient, Tag, Recipe, IngredientInRecipe
-from .serializers import IngredientSerializer, TagSerializer, RecipeSerializer
-from .paginators import RecipesCustomPagination
+
 from .filters import IngredientFilter, RecipeFilter
-from .permissions import IsOwnerOrAdminOrReadOnly, IsOwnerOrReadOnly
+from .models import Ingredient, Recipe, Tag
+from .paginators import RecipesCustomPagination
+from .permissions import IsOwnerOrReadOnly
+from .serializers import IngredientSerializer, RecipeSerializer, TagSerializer
+
+# from .make_pdf_for_response import render_pdf_view, render_to_pdf
+
+User = get_user_model()
+
+# https://old.fonts-online.ru/font/Bee-Three - шрифт отсюда брал
+FONT_PATH = os.path.join(os.path.join(BASE_DIR, 'templates'), '19207.ttf')
 
 
 @action(detail=True)
@@ -182,3 +198,71 @@ class RecipeViewSet(mixins.ListModelMixin,
         favorites.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    # Пытался выполнить все через xhtml2pdf...
+    # PDF из шаблона делается, но вместо кириллицы - квадраты...
+    # @action(
+    #     detail=False, methods=['get', ],
+    #     # permission_classes=[IsAuthenticated])
+    #     permission_classes=[AllowAny])
+    # def download_shopping_cart(self, request):
+    #     user = User.objects.get(id=1)
+    #     # shopping_list = request.user._get_user_shopping_cart
+    #     shopping_list = user._get_user_shopping_cart
+    #     # for item in shopping_list['purchases']:
+    #     #     print(shopping_list['purchases'][item])
+    #     # shopping_list = []
+    #     # for item in list:
+    #     #     shopping_list.append(f'{item} - {list[item]["amount"]} '
+    #     #                          f'{list[item]["measurement_unit"]} \n')
+    #    response = HttpResponse(shopping_list, 'Content-Type: text/plain')
+    #     # response['Content-Disposition'] = (
+    #     #     'attachment; filename="shoplist.txt"'
+    #     # )
+
+    #     # return response
+    #     return render_pdf_view(shopping_list)
+
+    @action(
+        detail=False,
+        methods=['GET'],
+        permission_classes=[IsAuthenticated]
+    )
+    def download_shopping_cart(self, request):
+        # user = User.objects.get(id=1)
+        # shopping_list = user._get_user_shopping_cart
+        shopping_list = request.user._get_user_shopping_cart
+
+        if shopping_list is None:
+            error = {'errors': 'Список рецептов пуст'}
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
+        recipes = [recipe.name for recipe in shopping_list['recipes_in_cart']]
+        last_recipe = recipes.pop()
+        shopping_list = shopping_list['purchases']
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = ('attachment; '
+                                           'filename="shopping_cart.pdf"')
+        canvas = Canvas(response)
+
+        pdfmetrics.registerFont(TTFont('FontPDF', FONT_PATH))
+        canvas.setFont('FontPDF', 50)
+        canvas.drawString(
+            100, 750,
+            "Список покупок, для рецептов:"
+        )
+        canvas.setFont('FontPDF', 30)
+        canvas.drawString(
+            100, 700,
+            f"{', '.join(recipes)}{last_recipe}"
+        )
+        canvas.setFont('FontPDF', 30)
+        counter = itertools.count(650, -50)
+        for key, value in shopping_list.items():
+            height = next(counter)
+            canvas.drawString(
+                50, height,
+                f"-  {key} - {value['amount']}{value['measurement_unit']}"
+            )
+        canvas.save()
+        return response

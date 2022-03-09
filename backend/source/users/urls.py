@@ -1,9 +1,9 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import UserViewSet, SubscribeViewset, ListSubscriptions
 # from .views import registration_user
-from authentication.views import UpdatePassword
+
+from .views import ListSubscriptions, SubscribeViewset, UserViewSet
 
 app_name = "users"
 

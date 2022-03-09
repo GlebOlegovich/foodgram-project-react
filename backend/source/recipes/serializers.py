@@ -1,13 +1,13 @@
 from django.contrib.auth import get_user_model
-from rest_framework import serializers
 from django.shortcuts import get_object_or_404
 # Для сохранени изображения из base64
 from drf_extra_fields.fields import Base64ImageField
+from rest_framework import serializers
 
-
-from users.serializers import UsersListSerialiser
 from favs_N_shopping.models import Favorites, Purchase
-from .models import Ingredient, Tag, Recipe, IngredientInRecipe
+from users.serializers import UsersListSerialiser
+
+from .models import Ingredient, IngredientInRecipe, Recipe, Tag
 
 User = get_user_model()
 

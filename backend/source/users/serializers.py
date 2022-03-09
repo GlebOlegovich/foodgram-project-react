@@ -1,9 +1,10 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import Follow
-from recipes.models import Recipe
 from favs_N_shopping.serializers import FavoritORInShopingCart_RecipeSerializer
+from recipes.models import Recipe
+
+from .models import Follow
 
 User = get_user_model()
 
