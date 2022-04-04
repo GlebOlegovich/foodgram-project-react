@@ -6,7 +6,9 @@ from .serializers import ChangePasswordSerializer
 
 
 class UpdatePassword(APIView):
-    # Смена пасса.
+    '''
+        Смена пасса. Post запрос.
+    '''
     permission_classes = (IsAuthenticated, )
 
     def _get_object(self, queryset=None):
@@ -16,14 +18,16 @@ class UpdatePassword(APIView):
         self.object = self._get_object()
         serializer = ChangePasswordSerializer(data=request.data)
 
-        if serializer.is_valid():
+        try:
+            serializer.is_valid(raise_exception=True)
             # Проверка старого пароля
-            old_password = serializer.data.get("old_password")
-            if not self.object.check_password(old_password):
-                return Response({"old_password": ["Неверный пароль!"]},
+            current_password = serializer.data.get("current_password")
+            if not self.object.check_password(current_password):
+                return Response({"current_password": ["Неверный пароль!"]},
                                 status=status.HTTP_400_BAD_REQUEST)
             # set_password хэширует пасс юзера!
             self.object.set_password(serializer.data.get("new_password"))
             self.object.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

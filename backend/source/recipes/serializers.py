@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from favs_N_shopping.models import Favorites, Purchase
+from favs_n_shopping.models import Favorite, Purchase
 from users.serializers import UsersListSerialiser
 
 from .models import Ingredient, IngredientInRecipe, Recipe, Tag
@@ -61,7 +61,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request is None or request.user.is_anonymous:
             return False
-        return Favorites.objects.filter(user=request.user,
+        return Favorite.objects.filter(user=request.user,
                                         recipe=obj).exists()
 
     def get_is_in_shopping_cart(self, obj):
@@ -77,10 +77,31 @@ class RecipeSerializer(serializers.ModelSerializer):
         # 8 пункт
         # https://profil-software.com/blog/development/
         # 10-things-you-need-know-effectively-use-django-rest-framework/#l3iqd
-
         # ingredients = self.initial_data.get('ingredients')
-        request = self.context.get('request')
-        ingredients = request.data.get('ingredients')
+        
+        # Делал вот это
+        # print(data)
+        # Вывод был вот такой 
+        # OrderedDict(
+        #     [('name', '4'),
+        #     ('text', 'йцв'),
+        #     ('image', <SimpleUploadedFile:1.jpg (image/jpeg)>),
+        #     ('cooking_time', 4)]
+        # )
+        # Я из data никак не могу взять ингридиенты...
+        # Поэтому или:
+        # request = self.context.get('request')
+        # ingredients = request.data.get('ingredients')
+        # или
+        # 8 пункт
+        # https://profil-software.com/blog/development/
+        # 10-things-you-need-know-effectively-use-django-rest-framework/#l3iqd
+        ingredients = self.initial_data.get('ingredients')
+        for ingredient in ingredients:
+            try:
+                get_object_or_404(Ingredient, id=ingredient['id'])
+            except:
+                raise serializers.ValidationError('Неизвестный ингридиент')
         # Проверка ингридиентов
         ingredients_set = set()
         for ingredient in ingredients:
@@ -89,6 +110,12 @@ class RecipeSerializer(serializers.ModelSerializer):
                     ('Убедитесь, что значение количества '
                      'ингредиента больше 0')
                 )
+            if int(ingredient.get('amount')) > 32767:
+                raise serializers.ValidationError(
+                    ('Убедитесь, что значение количества '
+                     'ингредиента меньше 32768')
+                )
+            # django.db.utils.DataError: smallint out of range
             id = ingredient.get('id')
             if id in ingredients_set:
                 raise serializers.ValidationError(
@@ -96,6 +123,14 @@ class RecipeSerializer(serializers.ModelSerializer):
                 )
             ingredients_set.add(id)
         data['ingredients'] = ingredients
+
+        tags = self.initial_data.get('tags')
+        for tag in tags:
+            try:
+                get_object_or_404(Tag, id=tag)
+            except:
+                raise serializers.ValidationError('Неизвестный Тег')
+        data['tags'] = tags
         return data
 
     def create(self, validated_data):
@@ -103,43 +138,70 @@ class RecipeSerializer(serializers.ModelSerializer):
         image = validated_data.pop('image')
 
         # Необработанные входные данные в виде Dict - initial_data
-        tags = self.initial_data.get('tags')
+        # tags = self.initial_data.get('tags')
+        # или
+        # Сделал в validate прокидывание тегов в валид дата
+        tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
 
-        recipe = Recipe.objects.create(image=image, **validated_data)
-        # recipe = Recipe.objects.create(**validated_data)
+        # recipe = Recipe.objects.create(image=image, **validated_data)
+        recipe = Recipe.objects.create(**validated_data)
+        try:
+            self._add_ingredients_in_recipe(
+                recipe=recipe,
+                ingredients=ingredients
+            )
 
-        for tag_id in tags:
-            recipe.tags.add(get_object_or_404(Tag, pk=tag_id))
+            self._add_tags_in_recipe(
+                recipe=recipe,
+                tags=tags
+                )
+
+            recipe.image = image
+        except:
+            recipe.delete()
+        return recipe
+
+    def update(self, instance, validated_data):
+        instance.tags.clear()
+        # tags = self.initial_data.get('tags')
+        self._add_tags_in_recipe(
+            recipe=instance,
+            tags=validated_data.pop('tags')
+            )
+
+        IngredientInRecipe.objects.filter(recipe=instance).delete()
+        self._add_ingredients_in_recipe(
+            recipe=instance,
+            ingredients=validated_data.pop('ingredients')
+            )
+        return super().update(instance, validated_data)
+        # Заюзал супер, вместо прописывания руками.
+        # if validated_data.get('image') is not None:
+        #     instance.delete_image()
+        #     instance.image = validated_data.get('image')
+        # instance.name = validated_data.get('name')
+        # instance.text = validated_data.get('text')
+        # instance.cooking_time = validated_data.get('cooking_time')
+        # instance.save()
+
+        # return instance
+
+    def _add_ingredients_in_recipe(self, recipe, ingredients):
+        # заценить!
+        # https://docs.djangoproject.com/en/4.0/ref/models/querysets/#bulk-create
         for ingredient in ingredients:
             IngredientInRecipe.objects.create(
                 recipe=recipe,
                 ingredient_id=ingredient.get('id'),
                 amount=ingredient.get('amount')
             )
-        return recipe
 
-    def update(self, instance, validated_data):
-        instance.tags.clear()
-        tags = self.initial_data.get('tags')
-        for tag_id in tags:
-            instance.tags.add(get_object_or_404(Tag, pk=tag_id))
-
-        IngredientInRecipe.objects.filter(recipe=instance).delete()
-        for ingredient in validated_data.get('ingredients'):
-            ingredients_amounts = IngredientInRecipe.objects.create(
-                recipe=instance,
-                ingredient_id=ingredient.get('id'),
-                amount=ingredient.get('amount')
-            )
-            ingredients_amounts.save()
-
-        if validated_data.get('image') is not None:
-            instance.delete_image()
-            instance.image = validated_data.get('image')
-        instance.name = validated_data.get('name')
-        instance.text = validated_data.get('text')
-        instance.cooking_time = validated_data.get('cooking_time')
-        instance.save()
-
-        return instance
+    def _add_tags_in_recipe(self, recipe, tags):
+        for tag in tags:
+            if type(tag)==int:
+                recipe.tags.add(get_object_or_404(Tag, pk=tag))
+            else:
+                raise serializers.ValidationError(
+                    'Возникли проблемы с тегом, мы не получили id.'
+                )

@@ -38,6 +38,7 @@ class UserCreationForm(forms.ModelForm):
 
 
 class UserChangeForm(forms.ModelForm):
+# class UserChangeForm(DjangoUserAdmin):
     # Это что бы пасс был только на чтение
     # password = ReadOnlyPasswordHashField()
 
@@ -55,8 +56,8 @@ class UserChangeForm(forms.ModelForm):
     # определять кого пускать, что бы пускало, например по
     # is_superuser or role = 'admin' or is_staff
 
-    def clean_password(self):
-        return self.initial['password']
+    # def clean_password(self):
+    #     return self.initial['password']
 
     # def save(self, commit=True):
     #     user = super().save(commit=False)
@@ -69,9 +70,9 @@ class UserChangeForm(forms.ModelForm):
 
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
-    form = UserChangeForm
+    # form = UserChangeForm
     add_form = UserCreationForm
-    change_password_form = UserCreationForm
+    # change_password_form = UserCreationForm
 
     list_display = (
         'email', 'username', 'first_name',
@@ -90,10 +91,11 @@ class UserAdmin(DjangoUserAdmin):
                        'last_name', 'password1', 'password2'),
         }),
     )
-    search_fields = ('email',)
+    search_fields = ('^email', '^username')
     ordering = ('email',)
     filter_horizontal = ()
 
+    
 
 class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ('author', 'user')

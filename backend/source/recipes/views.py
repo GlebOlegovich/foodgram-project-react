@@ -9,18 +9,18 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen.canvas import Canvas
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from config.settings import BASE_DIR
-from favs_N_shopping.models import Favorites, Purchase
-from favs_N_shopping.serializers import FavoritesSerializer, PurchaseSerializer
+from favs_n_shopping.models import Favorite, Purchase
+from favs_n_shopping.serializers import FavoriteSerializer, PurchaseSerializer
 
 from .filters import IngredientFilter, RecipeFilter
 from .models import Ingredient, Recipe, Tag
 from .paginators import RecipesCustomPagination
 from .permissions import IsOwnerOrReadOnly
+from .mixins import AddOrDeleteRecipeFromFavOrShoppingModelMixin
 from .serializers import IngredientSerializer, RecipeSerializer, TagSerializer
 
 # from .make_pdf_for_response import render_pdf_view, render_to_pdf
@@ -70,17 +70,20 @@ class RecipeViewSet(mixins.ListModelMixin,
                     mixins.DestroyModelMixin,
                     mixins.UpdateModelMixin,
                     mixins.CreateModelMixin,
+                    AddOrDeleteRecipeFromFavOrShoppingModelMixin,
                     viewsets.GenericViewSet):
     permission_classes = [IsOwnerOrReadOnly, ]
     serializer_class = RecipeSerializer
     pagination_class = RecipesCustomPagination
     lookup_url_kwarg = "id"
+    queryset = Recipe.objects.all()
     filter_class = RecipeFilter
 
     def perform_create(self, serializer):
         return serializer.save(author=self.request.user)
 
-    def get_queryset(self):
+    # Не юзаем, вместо этого фильтрация в фильтрах
+    def _get_queryset_filtered_by_favorited_and_shopping_cart(self):
         user = self.request.user
 
         need_favorited = self.request.GET.get('is_favorited', False)
@@ -107,99 +110,68 @@ class RecipeViewSet(mixins.ListModelMixin,
             # Exists -
             # https://djangodoc.ru/3.2/ref/models/expressions/
             # #exists-subqueries
-            is_favorited=Exists(Favorites.objects.filter(
+            is_favorited=Exists(Favorite.objects.filter(
                 user=user, recipe_id=OuterRef('pk')
             )),
             is_in_shopping_cart=Exists(Purchase.objects.filter(
                 user=user, recipe_id=OuterRef('pk')
             ))
         )
-        # need_favorited = self.request.GET.get('is_favorited', False)
-        # need_in_shopping_cart = self.request.GET.get(
-        #     'is_in_shopping_cart',
-        #     False
-        # )
+
         if need_favorited and need_favorited != '0':
-            need_favorited = True
-        # У меня тут получается если проставить &is_in_shopping_cart=0,
-        # и есть уже избранные рецепты - они исключатся
-        else:
-            need_favorited = False
+            return queryset.filter(
+            is_favorited=True
+        ).select_related('author').prefetch_related('tags', 'ingredients')
+
         if need_in_shopping_cart and need_in_shopping_cart != '0':
-            need_in_shopping_cart = True
-        else:
-            need_in_shopping_cart = False
+            return queryset.filter(
+            is_in_shopping_cart=True
+        ).select_related('author').prefetch_related('tags', 'ingredients')
 
         # Касаемо префетч не уверен
-        return queryset.filter(
-            is_favorited=need_favorited,
-            is_in_shopping_cart=need_in_shopping_cart
-        ).select_related('author').prefetch_related('tags', 'ingredients')
+        return queryset.select_related('author').prefetch_related(
+            'tags', 'ingredients'
+        )
 
     @action(
         detail=True, methods=['post', ],
         permission_classes=[IsAuthenticated]
     )
     def favorite(self, request, id=None):
-        user = request.user
-        recipe = get_object_or_404(Recipe, id=id)
-
-        data = {
-            'user': user.id,
-            'recipe': recipe.id,
-        }
-        serializer = FavoritesSerializer(
-            data=data,
-            context={'request': request}
+        return self.adding_recipe_to_model_with_serializer(
+            request=request,
+            root_serializer= FavoriteSerializer,
+            recipe_id=id
         )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    # https://stackoverflow.com/questions/62084905/how-to-make-delete-method-in-django-extra-action
+    # https://stackoverflow.com/questions/62084905/
+    # how-to-make-delete-method-in-django-extra-action
     @favorite.mapping.delete
     def delete_favorite(self, request, id=None):
-        user = request.user
-        recipe = get_object_or_404(Recipe, id=id)
-        favorites = get_object_or_404(
-            Favorites, user=user, recipe=recipe
+        return self.delete_recipe_from_model(
+            model=Favorite,
+            request=request,
+            recipe_id=id
         )
-        favorites.delete()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=True, methods=['post', ],
         permission_classes=[IsAuthenticated]
     )
     def shopping_cart(self, request, id=None):
-        user = request.user
-        recipe = get_object_or_404(Recipe, id=id)
-
-        data = {
-            'user': user.id,
-            'recipe': recipe.id,
-        }
-        serializer = PurchaseSerializer(
-            data=data,
-            context={'request': request}
+        return self.adding_recipe_to_model_with_serializer(
+            request=request,
+            root_serializer= PurchaseSerializer,
+            recipe_id=id
         )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @shopping_cart.mapping.delete
     def delete_shopping_cart(self, request, id=None):
-        user = request.user
-        recipe = get_object_or_404(Recipe, id=id)
-        favorites = get_object_or_404(
-            Purchase, user=user, recipe=recipe
+        return self.delete_recipe_from_model(
+            model=Purchase,
+            request=request,
+            recipe_id=id
         )
-        favorites.delete()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
     # Пытался выполнить все через xhtml2pdf...
     # PDF из шаблона делается, но вместо кириллицы - квадраты...
@@ -231,20 +203,21 @@ class RecipeViewSet(mixins.ListModelMixin,
         permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, request):
-        # user = User.objects.get(id=1)
-        # shopping_list = user._get_user_shopping_cart
-        shopping_list = request.user._get_user_shopping_cart
+        shopping_list = request.user._get_user_shopping_cart()
 
         if shopping_list is None:
             error = {'errors': 'Список рецептов пуст'}
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
-        recipes = [recipe.name for recipe in shopping_list['recipes_in_cart']]
-        last_recipe = recipes.pop()
-        shopping_list = shopping_list['purchases']
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = ('attachment; '
-                                           'filename="shopping_cart.pdf"')
+        recipes = [recipe for recipe in shopping_list['recipes_in_cart']]
+        purchases = shopping_list['purchases']
+        response = HttpResponse(
+            content_type='application/pdf'
+        )
+        response['Content-Disposition'] = (
+            'attachment; '
+            'filename="shopping_cart.pdf"'
+        )
         canvas = Canvas(response)
 
         pdfmetrics.registerFont(TTFont('FontPDF', FONT_PATH))
@@ -256,15 +229,21 @@ class RecipeViewSet(mixins.ListModelMixin,
         canvas.setFont('FontPDF', 30)
         canvas.drawString(
             100, 700,
-            f"{', '.join(recipes)}{last_recipe}"
+            f"{', '.join(recipes)}"
         )
         canvas.setFont('FontPDF', 30)
         counter = itertools.count(650, -50)
-        for key, value in shopping_list.items():
+        for item in purchases:
+            
             height = next(counter)
             canvas.drawString(
                 50, height,
-                f"-  {key} - {value['amount']}{value['measurement_unit']}"
+                f"-  {item['ingredient_name']} "
+                f"- {item['ingredient_amount']}"
+                f"{item['ingredient_measurement_unit']}"
             )
         canvas.save()
+
+        request.user._clean_up_shopping_cart()
+
         return response

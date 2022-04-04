@@ -1,20 +1,62 @@
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
+from django.conf import settings
+# from django.conf.urls import url
+from django.conf.urls.static import static
+from rest_framework.routers import DefaultRouter
+
+from recipes.views import IngredientViewSet, TagViewSet, RecipeViewSet
+from authentication.views import UpdatePassword
+
+# from rest_framework_swagger.views import get_swagger_view
+
 # from .import settings
 # from django.contrib.staticfiles.urls import static
 
+# schema_view = get_swagger_view(title='API docs')
+
+router = DefaultRouter()
+router.register(
+    r'ingredients',
+    IngredientViewSet,
+    basename='ingredients'
+)
+
+router.register(
+    r'tags',
+    TagViewSet,
+    basename='tags'
+)
+
+router.register(
+    r'recipes',
+    RecipeViewSet,
+    basename='recipes'
+)
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('api.urls', namespace='api')),
-    # path('auth/', include('djoser.urls')),
-    # path('auth/', include('djoser.urls.authtoken')),
+    path('api-auth/', include('rest_framework.urls'))
+    # re_path('api/swagger/', schema_view),
 ]
 
-# urlpatterns += static(
-#     settings.MEDIA_URL,
-#     document_root=settings.MEDIA_ROOT
-# )
-# urlpatterns += static(
-#     settings.STATIC_URL,
-#     document_root=settings.STATIC_ROOT
-# )
+urlpatterns += [re_path('api/', include([
+    path("users/set_password/", UpdatePassword.as_view(), name="set_password"),
+    path('users/', include('users.urls'), name='users'),
+
+    path('auth/', include('authentication.urls'), name='auth'),
+
+    path('', include(router.urls)),
+    ]))]
+
+# Для дев режима с контейнерами
+urlpatterns += static(
+    settings.MEDIA_URL,
+    document_root=settings.MEDIA_ROOT
+)
+# Для дев режима с контейнерами
+urlpatterns += static(
+    settings.STATIC_URL,
+    document_root=settings.STATIC_ROOT
+)

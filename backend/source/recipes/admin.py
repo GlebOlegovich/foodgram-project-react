@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from favs_N_shopping.models import Favorites
+from favs_n_shopping.models import Favorite
 from .models import Ingredient, IngredientInRecipe, Recipe, Tag
 
 
@@ -18,16 +18,18 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = ('author', 'name', 'favorited')
     list_filter = ('author', 'name', 'tags')
     exclude = ('ingredients',)
+    search_fields = ('^name',)
 
     inlines = [
         RecipeIngredientAdmin,
     ]
 
+    @admin.display(empty_value='Никто')
     def favorited(self, obj):
-        favorited_count = Favorites.objects.filter(recipe=obj).count()
+        favorited_count = Favorite.objects.filter(recipe=obj).count()
         return favorited_count
 
-    favorited.short_description = 'В избранном'
+    favorited.short_description = 'Кол-во людей добавивших в избранное'
 
 
 class TagAdmin(admin.ModelAdmin):

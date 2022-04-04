@@ -135,3 +135,4 @@ backend_old/
 media/
 static/
 .vscode/
+yamdb_workflow.yml

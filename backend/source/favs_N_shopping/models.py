@@ -7,7 +7,7 @@ from recipes.models import Recipe
 User = get_user_model()
 
 
-class Favorites(models.Model):
+class Favorite(models.Model):
     """ Избранное """
     user = models.ForeignKey(
         User,

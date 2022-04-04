@@ -1,7 +1,9 @@
 
 # from __future__ import annotations
+from urllib import request
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Sum, F
 
 import recipes as recipes
 from config.settings import GLOBAL_SETTINGS
@@ -92,41 +94,39 @@ class User(AbstractUser):
             author=obj
         ).delete()
 
-    @property
+    def _clean_up_shopping_cart(self):
+        self.purchases.all().delete()
+
     def _get_user_shopping_cart(self):
-        shopping_cart = self.purchases.all()
-        if not shopping_cart.exists():
+
+        purchases = self.purchases
+        if not purchases.exists():
             return None
-        list = {'recipes_in_cart': []}
-        purchases = {}
-        for item in shopping_cart:
-            recipe = item.recipe
-            # recipe_name = recipe.name
-            if recipe.name not in list['recipes_in_cart']:
-                list['recipes_in_cart'].append(recipe)
-            # Пришлось делать костыиль, если делал
-            # from recipes.models import IngredientInRecipe
-            # кидало ошибку
-            # django.core.exceptions.ImproperlyConfigured: AUTH_USER_MODEL
-            # refers to model'users.User' that has not been installed
-            ingredients = recipes.models.IngredientInRecipe.objects.filter(
-                recipe=recipe
-            )
-            for ingredient in ingredients:
-                amount = ingredient.amount
-                name = ingredient.ingredient.name
-                measurement_unit = ingredient.ingredient.measurement_unit
-                if name not in purchases:
-                    purchases[name] = {
-                        'measurement_unit': measurement_unit,
-                        'amount': amount
-                    }
-                else:
-                    purchases[name]['amount'] += amount
-                    # (
-                    #     list[name]['amount'] + amount
-                    # )
-        list['purchases'] = purchases
+        user_recipes_for_shopping = [
+            purchase.recipe.name for purchase in purchases.all()
+        ]
+
+        # Возвращается список покупок
+        # Каждый пункт покупки в виде словаря
+
+        # Пришлось делать костыиль, если делал
+        # from recipes.models import IngredientInRecipe
+        # кидало ошибку
+        # django.core.exceptions.ImproperlyConfigured: AUTH_USER_MODEL
+        # refers to model'users.User' that has not been installed
+        shopping_cart = recipes.models.IngredientInRecipe.objects.filter(
+            recipe__purchases__user=self
+        ).values(
+            ingredient_name=F('ingredient__name'),
+            ingredient_measurement_unit=F('ingredient__measurement_unit'),
+        ).annotate(
+            ingredient_amount=Sum('amount'),
+        ).order_by('ingredient_name')
+
+        list = {
+            'recipes_in_cart': user_recipes_for_shopping,
+            'purchases': shopping_cart
+        }
         return list
 
     def __str__(self) -> str:
