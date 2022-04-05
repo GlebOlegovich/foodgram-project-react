@@ -1,3 +1,4 @@
+from genericpath import exists
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 # Для сохранени изображения из base64
@@ -115,7 +116,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                     ('Убедитесь, что значение количества '
                      'ингредиента меньше 32768')
                 )
-            # django.db.utils.DataError: smallint out of range
+
             id = ingredient.get('id')
             if id in ingredients_set:
                 raise serializers.ValidationError(
@@ -188,14 +189,38 @@ class RecipeSerializer(serializers.ModelSerializer):
         # return instance
 
     def _add_ingredients_in_recipe(self, recipe, ingredients):
-        # заценить!
         # https://docs.djangoproject.com/en/4.0/ref/models/querysets/#bulk-create
+        temp_ingredients = []
+        # bulk-create не делает нумерацию pk
+        obj_id = (
+            IngredientInRecipe.objects.latest('id').id + 1
+            if IngredientInRecipe.objects.all().exists()
+            else 0
+        )
+
         for ingredient in ingredients:
-            IngredientInRecipe.objects.create(
-                recipe=recipe,
-                ingredient_id=ingredient.get('id'),
-                amount=ingredient.get('amount')
+            # IngredientInRecipe.objects.create(
+            #     recipe=recipe,
+            #     ingredient_id=ingredient.get('id'),
+            #     amount=ingredient.get('amount')
+            # )
+            temp_ingredients.append(
+                IngredientInRecipe(
+                    id = obj_id,
+                    recipe=recipe,
+                    ingredient_id=ingredient.get('id'),
+                    amount=ingredient.get('amount')
+                )
             )
+            obj_id += 1
+
+        IngredientInRecipe.objects.bulk_create(
+            temp_ingredients,
+            # Это максимум для SqLite
+            batch_size=999
+        )
+
+
 
     def _add_tags_in_recipe(self, recipe, tags):
         for tag in tags:
