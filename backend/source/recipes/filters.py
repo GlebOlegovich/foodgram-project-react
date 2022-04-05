@@ -1,7 +1,9 @@
+from django_filters import CharFilter
 from django_filters.rest_framework import FilterSet, filters
+
 from django.contrib.auth import get_user_model
 from django.db.models import Case, IntegerField, Q, When
-from django_filters import CharFilter
+
 from recipes.models import Ingredient, Recipe
 
 User = get_user_model()

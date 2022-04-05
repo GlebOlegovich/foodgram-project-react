@@ -1,9 +1,10 @@
 
 # from __future__ import annotations
 from urllib import request
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.db.models import Sum, F
+from django.db.models import F, Sum
 
 import recipes as recipes
 from config.settings import GLOBAL_SETTINGS

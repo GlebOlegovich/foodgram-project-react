@@ -1,9 +1,6 @@
 import itertools
 import os
 
-from django.contrib.auth import get_user_model
-from django.db.models import Exists, OuterRef
-from django.http.response import HttpResponse
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen.canvas import Canvas
@@ -12,15 +9,19 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from django.contrib.auth import get_user_model
+from django.db.models import Exists, OuterRef
+from django.http.response import HttpResponse
+
 from config.settings import BASE_DIR
 from favs_n_shopping.models import Favorite, Purchase
 from favs_n_shopping.serializers import FavoriteSerializer, PurchaseSerializer
 
 from .filters import IngredientFilter, RecipeFilter
+from .mixins import AddOrDeleteRecipeFromFavOrShoppingModelMixin
 from .models import Ingredient, Recipe, Tag
 from .paginators import RecipesCustomPagination
 from .permissions import IsOwnerOrReadOnly
-from .mixins import AddOrDeleteRecipeFromFavOrShoppingModelMixin
 from .serializers import IngredientSerializer, RecipeSerializer, TagSerializer
 
 # from .make_pdf_for_response import render_pdf_view, render_to_pdf

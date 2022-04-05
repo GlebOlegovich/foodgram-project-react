@@ -1,11 +1,12 @@
 import json
-from tqdm import tqdm
 import os
+
+from tqdm import tqdm
 
 from django.core.management.base import BaseCommand
 
-from ._settings_for_import import BASE_DIR, NEED_TO_PARSE
 from ._core import insert_data_to_DB
+from ._settings_for_import import BASE_DIR, NEED_TO_PARSE
 
 
 class Command(BaseCommand):

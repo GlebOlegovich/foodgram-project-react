@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from favs_n_shopping.models import Favorite
+
 from .models import Ingredient, IngredientInRecipe, Recipe, Tag
 
 

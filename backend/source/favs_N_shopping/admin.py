@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Purchase, Favorite
+from .models import Favorite, Purchase
 
 
 class PurchaseAdmin(admin.ModelAdmin):

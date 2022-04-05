@@ -1,5 +1,6 @@
-from django.contrib.auth import get_user_model
 from rest_framework import serializers
+
+from django.contrib.auth import get_user_model
 
 from favs_n_shopping.serializers import FavoritORInShopingCart_RecipeSerializer
 from recipes.models import Recipe

@@ -1,9 +1,10 @@
-from genericpath import exists
-from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 # Для сохранени изображения из base64
 from drf_extra_fields.fields import Base64ImageField
+from genericpath import exists
 from rest_framework import serializers
+
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 
 from favs_n_shopping.models import Favorite, Purchase
 from users.serializers import UsersListSerialiser

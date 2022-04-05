@@ -1,12 +1,13 @@
-from django.contrib import admin
-from django.urls import path, include, re_path
+from rest_framework.routers import DefaultRouter
+
 from django.conf import settings
 # from django.conf.urls import url
 from django.conf.urls.static import static
-from rest_framework.routers import DefaultRouter
+from django.contrib import admin
+from django.urls import include, path, re_path
 
-from recipes.views import IngredientViewSet, TagViewSet, RecipeViewSet
 from authentication.views import UpdatePassword
+from recipes.views import IngredientViewSet, RecipeViewSet, TagViewSet
 
 # from rest_framework_swagger.views import get_swagger_view
 
