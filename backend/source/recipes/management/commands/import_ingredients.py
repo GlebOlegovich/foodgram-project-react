@@ -22,9 +22,9 @@ class Command(BaseCommand):
             else 0
         )
         print('Проверяем, сколько элементов необходимо добавить в БД')
-        
+
         for item in tqdm(data):
-            obj =  Model.objects.filter(**item)
+            obj = Model.objects.filter(**item)
             if not obj.exists():
                 valid_data.append(
                     Model(
@@ -34,8 +34,6 @@ class Command(BaseCommand):
                 )
                 obj_id += 1
                 new_items_count += 1
-            # else:
-            #     print(f'{obj} уже есть в модели {Model.__name__}' )
 
         if new_items_count > 0:
             print(
@@ -51,7 +49,6 @@ class Command(BaseCommand):
         else:
             print('Нет новых элементов, для добавления')
 
-
     def handle(self, *args, **options):
         filename = 'ingredients.json'
         DATA_DIR = os.path.join(
@@ -64,5 +61,5 @@ class Command(BaseCommand):
 
         insert_data_to_DB(
             data=data,
-            Model = NEED_TO_PARSE[filename]
-            )
+            Model=NEED_TO_PARSE[filename]
+        )

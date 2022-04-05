@@ -37,8 +37,10 @@ class UserCreationForm(forms.ModelForm):
         return user
 
 
-class UserChangeForm(forms.ModelForm):
 # class UserChangeForm(DjangoUserAdmin):
+# Сделал в итоге так, тогда можно из админки перейти в форму смены пасса юзера,
+# без каких либо кодов подтверждения
+class UserChangeForm(forms.ModelForm):
     # Это что бы пасс был только на чтение
     # password = ReadOnlyPasswordHashField()
 
@@ -95,7 +97,6 @@ class UserAdmin(DjangoUserAdmin):
     ordering = ('email',)
     filter_horizontal = ()
 
-    
 
 class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ('author', 'user')

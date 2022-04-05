@@ -7,7 +7,7 @@ from .models import Recipe
 
 class AddOrDeleteRecipeFromFavOrShoppingModelMixin:
     """
-        Мда, название мб и плохое... Но это миксин для 
+        Мда, название мб и плохое... Но это миксин для
         добавления/удаления
         рецепта в избранное/шопинг кард, например
     """
@@ -19,21 +19,21 @@ class AddOrDeleteRecipeFromFavOrShoppingModelMixin:
             рецепта в избранное/шопинг кард, например
         '''
         user = request.user
-        recipe = recipe = get_object_or_404(Recipe, id=recipe_id) 
+        recipe = recipe = get_object_or_404(Recipe, id=recipe_id)
 
-        data = { 
+        data = {
 
-            'user': user.id, 
+            'user': user.id,
 
-            'recipe': recipe.id, 
+            'recipe': recipe.id,
 
-        } 
+        }
         serializer = root_serializer(
             data=data,
             context={'request': request}
         )
-        serializer.is_valid(raise_exception=True) 
-        serializer.save() 
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete_recipe_from_model(
@@ -43,22 +43,10 @@ class AddOrDeleteRecipeFromFavOrShoppingModelMixin:
             Мда, название мб и плохое... Но это метод для удаления
             рецепта в избранное/шопинг кард, например
         '''
-        user = request.user 
-        recipe = get_object_or_404(Recipe, id=recipe_id) 
-        instance = get_object_or_404( 
-            model, user=user, recipe=recipe 
-        ) 
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=recipe_id)
+        instance = get_object_or_404(
+            model, user=user, recipe=recipe
+        )
         instance.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT) 
-
-
-    # def list(self, request, *args, **kwargs):
-    #     queryset = self.filter_queryset(self.get_queryset())
-
-    #     page = self.paginate_queryset(queryset)
-    #     if page is not None:
-    #         serializer = self.get_serializer(page, many=True)
-    #         return self.get_paginated_response(serializer.data)
-
-    #     serializer = self.get_serializer(queryset, many=True)
-    #     return Response(serializer.data)
+        return Response(status=status.HTTP_204_NO_CONTENT)

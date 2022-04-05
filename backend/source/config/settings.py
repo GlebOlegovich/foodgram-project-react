@@ -6,31 +6,27 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DEBUG = True
 
-# dev
-env_path = os.path.join(os.path.join(os.path.dirname(os.path.dirname(BASE_DIR)), 'infra'), '.env')
-load_dotenv(env_path)
+if DEBUG:
+    env_path = os.path.join(os.path.join(os.path.dirname(os.path.dirname(BASE_DIR)), 'infra'), '.env')
+    load_dotenv(env_path)
+else:
+    load_dotenv()
 
-#prod
-# load_dotenv()
-
-
-# DEBUG = os.getenv("DEBUG", default="False")
-
-# if DEBUG:
-#     env_path = os.path.join(os.path.join(os.path.dirname(os.path.dirname(BASE_DIR)), 'infra'), '.env')
-#     load_dotenv(env_path)
-# else:
-#     load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-
-
 ALLOWED_HOSTS = ["*"]
-CSRF_TRUSTED_ORIGINS = ['https://*', 'https://*localhost', 'https://*.127.0.0.1',
-                        'http://*', 'http://*localhost', 'http://*.127.0.0.1',
-                        'http://*.62.84.121.23', 'http://*.foodgram-project.ddns.net',
-                        'https://*foodgram-project.ddns.net']
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://*', 'https://*localhost', 'https://*.127.0.0.1',
+    'http://*', 'http://*localhost', 'http://*.127.0.0.1'
+]
+
+INTERNAL_IPS = [
+    '127.0.0.1',
+    '127.0.0.1:8000',
+    'localhost:8000'
+]
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -48,10 +44,8 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django_filters',
     'djoser',
-    # 'debug_toolbar',
-    # 'sorl.thumbnail',
+    'debug_toolbar',
 
-    # 'api',
     'authentication',
     'users',
     'recipes',
@@ -66,7 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # "debug_toolbar.middleware.DebugToolbarMiddleware"
+    'debug_toolbar.middleware.DebugToolbarMiddleware'
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -83,8 +77,8 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
-            'libraries' : {
-                'staticfiles': 'django.templatetags.static', 
+            'libraries': {
+                'staticfiles': 'django.templatetags.static',
             }
         },
     },
@@ -96,6 +90,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
+# Тут костыль - Запускаю локально с postgresal в контейнере
 if not DEBUG:
     DATABASES = {
         "default": {
@@ -146,8 +141,7 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend'
     ],
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
-    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    # 'PAGE_SIZE': 1
+
 }
 
 # Internationalization
@@ -190,16 +184,10 @@ GLOBAL_SETTINGS = {
     "user": "user",
 }
 
-STATIC_URL = '/static/'
+STATIC_URL = '/static-backend/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # MEDIAILES_DIRS = [os.path.join(BASE_DIR, 'media')]
-
-# INTERNAL_IPS = [
-#     '127.0.0.1',
-#     '127.0.0.1:8000',
-#     'localhost:8000'
-# ]

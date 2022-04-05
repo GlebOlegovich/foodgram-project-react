@@ -8,6 +8,7 @@ from django.urls import include, path, re_path
 
 from authentication.views import UpdatePassword
 from recipes.views import IngredientViewSet, RecipeViewSet, TagViewSet
+from .settings import DEBUG
 
 # from rest_framework_swagger.views import get_swagger_view
 
@@ -49,15 +50,17 @@ urlpatterns += [re_path('api/', include([
     path('auth/', include('authentication.urls'), name='auth'),
 
     path('', include(router.urls)),
-    ]))]
+]))]
 
-# Для дев режима с контейнерами
-urlpatterns += static(
-    settings.MEDIA_URL,
-    document_root=settings.MEDIA_ROOT
-)
-# Для дев режима с контейнерами
-urlpatterns += static(
-    settings.STATIC_URL,
-    document_root=settings.STATIC_ROOT
-)
+if DEBUG:
+    # Для дев режима с контейнерами
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT
+    )
+
+    urlpatterns += static(
+        settings.STATIC_URL,
+        document_root=settings.STATIC_ROOT
+    )
+    urlpatterns.append(path('__debug__/', include('debug_toolbar.urls')))

@@ -121,13 +121,13 @@ class RecipeViewSet(mixins.ListModelMixin,
 
         if need_favorited and need_favorited != '0':
             return queryset.filter(
-            is_favorited=True
-        ).select_related('author').prefetch_related('tags', 'ingredients')
+                is_favorited=True
+            ).select_related('author').prefetch_related('tags', 'ingredients')
 
         if need_in_shopping_cart and need_in_shopping_cart != '0':
             return queryset.filter(
-            is_in_shopping_cart=True
-        ).select_related('author').prefetch_related('tags', 'ingredients')
+                is_in_shopping_cart=True
+            ).select_related('author').prefetch_related('tags', 'ingredients')
 
         # Касаемо префетч не уверен
         return queryset.select_related('author').prefetch_related(
@@ -141,7 +141,7 @@ class RecipeViewSet(mixins.ListModelMixin,
     def favorite(self, request, id=None):
         return self.adding_recipe_to_model_with_serializer(
             request=request,
-            root_serializer= FavoriteSerializer,
+            root_serializer=FavoriteSerializer,
             recipe_id=id
         )
 
@@ -162,7 +162,7 @@ class RecipeViewSet(mixins.ListModelMixin,
     def shopping_cart(self, request, id=None):
         return self.adding_recipe_to_model_with_serializer(
             request=request,
-            root_serializer= PurchaseSerializer,
+            root_serializer=PurchaseSerializer,
             recipe_id=id
         )
 
@@ -235,7 +235,7 @@ class RecipeViewSet(mixins.ListModelMixin,
         canvas.setFont('FontPDF', 30)
         counter = itertools.count(650, -50)
         for item in purchases:
-            
+
             height = next(counter)
             canvas.drawString(
                 50, height,

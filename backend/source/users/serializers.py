@@ -55,8 +55,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         lower_username = value.lower()
         if not(User.objects.filter(
             username__iexact=lower_username
-            ).exists()
-        ):
+        ).exists()):
             return value
         else:
             raise serializers.ValidationError(

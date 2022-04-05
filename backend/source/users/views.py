@@ -134,8 +134,8 @@ class SubscribeViewset(APIView):
     ):
         if first or second:
             message = (
-               first_messare if first
-               else second_message
+                first_messare if first
+                else second_message
             )
             return (
                 True,
