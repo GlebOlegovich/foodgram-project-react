@@ -9,7 +9,6 @@ from django.urls import include, path, re_path
 from authentication.views import UpdatePassword
 from recipes.views import IngredientViewSet, RecipeViewSet, TagViewSet
 
-from .settings import DEBUG
 
 router = DefaultRouter()
 router.register(
@@ -46,7 +45,7 @@ urlpatterns += [re_path('api/', include([
     path('', include(router.urls)),
 ]))]
 
-if DEBUG:
+if settings.DEBUG:
     # Для дев режима с контейнерами
     urlpatterns += static(
         settings.MEDIA_URL,

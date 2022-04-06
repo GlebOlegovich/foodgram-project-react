@@ -1,7 +1,7 @@
 # Prod version - Буду еще править
 version: '3.3'
-services:
 
+services:
   db:
     image: postgres:14.2-alpine
 
@@ -9,8 +9,8 @@ services:
       - dbdata:/var/lib/postgresql/data
     env_file:
       - ./.env
-    ports:
-      - "5432:5432"
+    # ports:
+    #   - "5432:5432"
 
   frontend:
     # image: godleib/foodgram_frontend:latest
@@ -27,12 +27,10 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
+    restart: always
     volumes:
-      - static:/app/static/
-      - media:/app/media/
-      # Мб все таки так
-      # - static_value:/var/html/static/
-      # - media:/var/html/media/
+      - static_value:/app/static-backend/
+      - media_value:/app/media-backend/
     depends_on:
       - db
     env_file:
@@ -48,13 +46,14 @@ services:
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
 
-      - static:/var/html/static/
-      - media:/var/html/media/
+      - static_value:/var/html/static-backend/
+      - media_value:/var/html/media-backend/
+    restart: always
     depends_on: 
       - backend
       - frontend
 
 volumes:
-  static:
-  media:
+  static_value:
+  media_value:
   dbdata: 

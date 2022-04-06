@@ -133,6 +133,8 @@ dmypy.json
 
 backend_old/
 media/
+media-backend/
 static/
+static-backend
 .vscode/
 yamdb_workflow.yml

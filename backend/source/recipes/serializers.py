@@ -4,7 +4,6 @@ from rest_framework import serializers
 
 from django.contrib.auth import get_user_model
 from django.db.models import F
-from django.shortcuts import get_object_or_404
 
 from favs_n_shopping.models import Favorite, Purchase
 from users.serializers import UsersListSerialiser

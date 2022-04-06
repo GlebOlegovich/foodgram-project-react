@@ -6,7 +6,7 @@ services:
     image: postgres:14.2-alpine
 
     volumes:
-      - dbdata:/var/lib/postgresql/data
+      - dbdata_dev:/var/lib/postgresql/data
     env_file:
       - ./.env
     ports:
@@ -31,8 +31,8 @@ services:
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
 
-      - static_value:/var/html/static/
-      - media_value:/var/html/media/
+      - static_value:/var/html/static-backend/
+      - media_value:/var/html/media-backend/
     depends_on: 
       # - backend
       - frontend
@@ -40,4 +40,4 @@ services:
 volumes:
   static_value:
   media_value:
-  dbdata:
+  dbdata_dev:

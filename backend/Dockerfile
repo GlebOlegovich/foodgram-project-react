@@ -4,6 +4,7 @@ LABEL author='Godleib' version=1 broken_keyboards=5 pwd='/Users/mac/DEV/Yandex_p
 
 WORKDIR /app
 COPY /source .
+
 COPY requirements.txt .
 RUN /usr/local/bin/python -m pip install --upgrade pip
 RUN pip3 install -r requirements.txt --no-cache-dir

@@ -4,13 +4,15 @@ from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-DEBUG = True
+DEBUG = False
 
 if DEBUG:
     env_path = os.path.join(os.path.join(os.path.dirname(os.path.dirname(BASE_DIR)), 'infra'), '.env')
     load_dotenv(env_path)
+    DB_HOST = 'localhost'
 else:
     load_dotenv()
+    DB_HOST = os.getenv("DB_HOST", default="localhost")
 
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -24,16 +26,20 @@ CSRF_TRUSTED_ORIGINS = [
 
 INTERNAL_IPS = [
     '127.0.0.1',
+    'localhost',
     '127.0.0.1:8000',
     'localhost:8000'
 ]
 
-STATIC_URL = '/static-backend/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# if DEBUG:
+STATIC_URL = '/static_backend/'
+# else:
+#     STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static-backend')
 # STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media_backend/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media-backend')
 # MEDIAILES_DIRS = [os.path.join(BASE_DIR, 'media')]
 
 # Тут костыль - Запускаю локально с postgresal в контейнере
@@ -51,7 +57,7 @@ DATABASES = {
         "NAME": os.getenv("DB_NAME", default="default"),
         "USER": os.getenv("POSTGRES_USER", default="default"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="default"),
-        "HOST": os.getenv("DB_HOST", default="default"),
+        "HOST": DB_HOST,
         "PORT": os.getenv("DB_PORT", default="default")
     }
 }
