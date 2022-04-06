@@ -82,6 +82,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             last_name=self.validated_data["last_name"],
             password=password
         )
+        # Альтернатива, если без create_user
         # Через создание объекта модели
         # user = User(
         #     email=self.validated_data["email"],

@@ -5,6 +5,10 @@ from xhtml2pdf import pisa
 from django.http import HttpResponse
 from django.template.loader import get_template
 
+# !!!!!!!!!!!!
+# НЕ используется, но мб в итоге допилю...
+# !!!!!!!!!!!!
+
 
 # Все перепробовал уже...
 # Не получается отрендерить мне пдф норм...

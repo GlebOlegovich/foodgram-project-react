@@ -22,9 +22,8 @@ from .mixins import AddOrDeleteRecipeFromFavOrShoppingModelMixin
 from .models import Ingredient, Recipe, Tag
 from .paginators import RecipesCustomPagination
 from .permissions import IsOwnerOrReadOnly
-from .serializers import IngredientSerializer, RecipeSerializer, TagSerializer
-
-# from .make_pdf_for_response import render_pdf_view, render_to_pdf
+from .serializers import (IngredientSerializer, RecipeCreateSerializer,
+                          RecipeListSerializer, TagSerializer)
 
 User = get_user_model()
 
@@ -74,7 +73,7 @@ class RecipeViewSet(mixins.ListModelMixin,
                     AddOrDeleteRecipeFromFavOrShoppingModelMixin,
                     viewsets.GenericViewSet):
     permission_classes = [IsOwnerOrReadOnly, ]
-    serializer_class = RecipeSerializer
+    # serializer_class = RecipeSerializer
     pagination_class = RecipesCustomPagination
     lookup_url_kwarg = "id"
     queryset = Recipe.objects.all()
@@ -83,7 +82,14 @@ class RecipeViewSet(mixins.ListModelMixin,
     def perform_create(self, serializer):
         return serializer.save(author=self.request.user)
 
-    # Не юзаем, вместо этого фильтрация в фильтрах
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return RecipeListSerializer
+        return RecipeCreateSerializer
+
+    # !!!!!!!!!!!!
+    # НЕ юзаем, вместо этого фильтрация в фильтрах
+    # !!!!!!!!!!!!
     def _get_queryset_filtered_by_favorited_and_shopping_cart(self):
         user = self.request.user
 
@@ -173,6 +179,10 @@ class RecipeViewSet(mixins.ListModelMixin,
             request=request,
             recipe_id=id
         )
+
+    # !!!!!!!!!!!!
+    # НЕ юзаем, пытался сделать через xhtm2pdf, мб еще допилю...
+    # !!!!!!!!!!!!
 
     # Пытался выполнить все через xhtml2pdf...
     # PDF из шаблона делается, но вместо кириллицы - квадраты...

@@ -86,32 +86,26 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-
 # Тут костыль - Запускаю локально с postgresal в контейнере
-if not DEBUG:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
-        }
+# if not DEBUG:
+#     DATABASES = {
+#         "default": {
+#             "ENGINE": "django.db.backends.sqlite3",
+#             "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+#         }
+#     }
+# else:
+DATABASES = {
+    "default": {
+        "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
+        "NAME": os.getenv("DB_NAME", default="default"),
+        "USER": os.getenv("POSTGRES_USER", default="default"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="default"),
+        "HOST": os.getenv("DB_HOST", default="default"),
+        "PORT": os.getenv("DB_PORT", default="default")
     }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
-            "NAME": os.getenv("DB_NAME", default="default"),
-            "USER": os.getenv("POSTGRES_USER", default="default"),
-            "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="default"),
-            "HOST": os.getenv("DB_HOST", default="default"),
-            "PORT": os.getenv("DB_PORT", default="default")
-        }
-    }
+}
 
-# Password validation
-# https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -144,8 +138,6 @@ REST_FRAMEWORK = {
 
 }
 
-# Internationalization
-# https://docs.djangoproject.com/en/2.2/topics/i18n/
 
 LANGUAGE_CODE = 'ru-ru'
 

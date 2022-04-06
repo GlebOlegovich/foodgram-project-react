@@ -8,14 +8,8 @@ from django.urls import include, path, re_path
 
 from authentication.views import UpdatePassword
 from recipes.views import IngredientViewSet, RecipeViewSet, TagViewSet
+
 from .settings import DEBUG
-
-# from rest_framework_swagger.views import get_swagger_view
-
-# from .import settings
-# from django.contrib.staticfiles.urls import static
-
-# schema_view = get_swagger_view(title='API docs')
 
 router = DefaultRouter()
 router.register(

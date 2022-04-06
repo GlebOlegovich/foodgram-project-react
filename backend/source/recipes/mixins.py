@@ -22,12 +22,10 @@ class AddOrDeleteRecipeFromFavOrShoppingModelMixin:
         recipe = recipe = get_object_or_404(Recipe, id=recipe_id)
 
         data = {
-
             'user': user.id,
-
             'recipe': recipe.id,
-
         }
+
         serializer = root_serializer(
             data=data,
             context={'request': request}
