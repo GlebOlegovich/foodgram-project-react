@@ -28,8 +28,35 @@ INTERNAL_IPS = [
     'localhost:8000'
 ]
 
-AUTH_USER_MODEL = 'users.User'
+STATIC_URL = '/static-backend/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# MEDIAILES_DIRS = [os.path.join(BASE_DIR, 'media')]
+
+# Тут костыль - Запускаю локально с postgresal в контейнере
+# if not DEBUG:
+#     DATABASES = {
+#         "default": {
+#             "ENGINE": "django.db.backends.sqlite3",
+#             "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+#         }
+#     }
+# else:
+DATABASES = {
+    "default": {
+        "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
+        "NAME": os.getenv("DB_NAME", default="default"),
+        "USER": os.getenv("POSTGRES_USER", default="default"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="default"),
+        "HOST": os.getenv("DB_HOST", default="default"),
+        "PORT": os.getenv("DB_PORT", default="default")
+    }
+}
+
+AUTH_USER_MODEL = 'users.User'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -40,7 +67,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
-    # 'rest_framework_swagger',
     'rest_framework.authtoken',
     'django_filters',
     'djoser',
@@ -86,27 +112,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Тут костыль - Запускаю локально с postgresal в контейнере
-# if not DEBUG:
-#     DATABASES = {
-#         "default": {
-#             "ENGINE": "django.db.backends.sqlite3",
-#             "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
-#         }
-#     }
-# else:
-DATABASES = {
-    "default": {
-        "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
-        "NAME": os.getenv("DB_NAME", default="default"),
-        "USER": os.getenv("POSTGRES_USER", default="default"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="default"),
-        "HOST": os.getenv("DB_HOST", default="default"),
-        "PORT": os.getenv("DB_PORT", default="default")
-    }
-}
-
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -137,7 +142,6 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
 
 }
-
 
 LANGUAGE_CODE = 'ru-ru'
 
@@ -175,11 +179,3 @@ GLOBAL_SETTINGS = {
     # "moderator": "moderator",
     "user": "user",
 }
-
-STATIC_URL = '/static-backend/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-# STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-# MEDIAILES_DIRS = [os.path.join(BASE_DIR, 'media')]
