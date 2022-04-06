@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Purchase, Favorites
+from .models import Favorite, Purchase
 
 
 class PurchaseAdmin(admin.ModelAdmin):
@@ -12,4 +12,4 @@ class FavoriteAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Purchase, PurchaseAdmin)
-admin.site.register(Favorites, FavoriteAdmin)
+admin.site.register(Favorite, FavoriteAdmin)

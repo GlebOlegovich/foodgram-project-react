@@ -1,10 +1,10 @@
 
 from django import forms
 from django.contrib import admin
-from django.contrib.auth.models import Group
-from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.contrib.auth.models import Group
+from django.core.exceptions import ValidationError
 
 from .models import Follow
 
@@ -37,6 +37,9 @@ class UserCreationForm(forms.ModelForm):
         return user
 
 
+# class UserChangeForm(DjangoUserAdmin):
+# Сделал в итоге так, тогда можно из админки перейти в форму смены пасса юзера,
+# без каких либо кодов подтверждения
 class UserChangeForm(forms.ModelForm):
     # Это что бы пасс был только на чтение
     # password = ReadOnlyPasswordHashField()
@@ -55,8 +58,8 @@ class UserChangeForm(forms.ModelForm):
     # определять кого пускать, что бы пускало, например по
     # is_superuser or role = 'admin' or is_staff
 
-    def clean_password(self):
-        return self.initial['password']
+    # def clean_password(self):
+    #     return self.initial['password']
 
     # def save(self, commit=True):
     #     user = super().save(commit=False)
@@ -69,9 +72,9 @@ class UserChangeForm(forms.ModelForm):
 
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
-    form = UserChangeForm
+    # form = UserChangeForm
     add_form = UserCreationForm
-    change_password_form = UserCreationForm
+    # change_password_form = UserCreationForm
 
     list_display = (
         'email', 'username', 'first_name',
@@ -90,7 +93,7 @@ class UserAdmin(DjangoUserAdmin):
                        'last_name', 'password1', 'password2'),
         }),
     )
-    search_fields = ('email',)
+    search_fields = ('^email', '^username')
     ordering = ('email',)
     filter_horizontal = ()
 

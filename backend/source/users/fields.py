@@ -1,6 +1,6 @@
 from django.db import models
 
-# Теперь по идее не нужно это все!
+# Теперь, по идее, не нужно это все!
 
 
 class LowercaseEmailField(models.EmailField):

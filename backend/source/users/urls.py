@@ -1,9 +1,11 @@
-from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+
+from django.urls import include, path
+
+from .views import ListSubscriptions, SubscribeViewset, UserViewSet
 
 # from .views import registration_user
 
-from .views import ListSubscriptions, SubscribeViewset, UserViewSet
 
 app_name = "users"
 

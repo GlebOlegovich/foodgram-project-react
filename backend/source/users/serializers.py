@@ -1,7 +1,8 @@
-from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from favs_N_shopping.serializers import FavoritORInShopingCart_RecipeSerializer
+from django.contrib.auth import get_user_model
+
+from favs_n_shopping.serializers import FavoritORInShopingCart_RecipeSerializer
 from recipes.models import Recipe
 
 from .models import Follow
@@ -54,8 +55,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         lower_username = value.lower()
         if not(User.objects.filter(
             username__iexact=lower_username
-            ).exists()
-        ):
+        ).exists()):
             return value
         else:
             raise serializers.ValidationError(
@@ -82,6 +82,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             last_name=self.validated_data["last_name"],
             password=password
         )
+        # Альтернатива, если без create_user
         # Через создание объекта модели
         # user = User(
         #     email=self.validated_data["email"],

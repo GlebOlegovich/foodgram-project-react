@@ -1,12 +1,13 @@
-# import os
 from io import BytesIO
 
-# from io import StringIO
-from django.http import HttpResponse
-from django.template.loader import get_template
 from xhtml2pdf import pisa
 
-# from django.shortcuts import render
+from django.http import HttpResponse
+from django.template.loader import get_template
+
+# !!!!!!!!!!!!
+# НЕ используется, но мб в итоге допилю...
+# !!!!!!!!!!!!
 
 
 # Все перепробовал уже...

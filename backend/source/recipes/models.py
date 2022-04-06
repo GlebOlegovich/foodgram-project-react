@@ -88,7 +88,12 @@ class Recipe(models.Model):
             MinValueValidator(
                 1,
                 message='Время приготовления не может быть меньше 1 мин.'
-            ), MaxValueValidator(32767)]
+            ),
+            MaxValueValidator(
+                32767,
+                message='Время приготовления не может быть больше 32767 мин.'
+            )
+        ]
     )
 
     tags = models.ManyToManyField(
@@ -132,7 +137,16 @@ class IngredientInRecipe(models.Model):
         related_name='get_recipes')
     amount = models.PositiveSmallIntegerField(
         'Количество',
-        validators=[MinValueValidator(1), MaxValueValidator(32767)]
+        validators=[
+            MinValueValidator(
+                1,
+                message='Количество ингредиентов не может быть меньше 1.'
+            ),
+            MaxValueValidator(
+                32767,
+                message='Количество ингредиентов не может быть больше 32767.'
+            )
+        ]
     )
 
     class Meta:

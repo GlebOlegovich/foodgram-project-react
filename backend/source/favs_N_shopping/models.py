@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from recipes.models import Recipe
@@ -7,7 +6,7 @@ from recipes.models import Recipe
 User = get_user_model()
 
 
-class Favorites(models.Model):
+class Favorite(models.Model):
     """ Избранное """
     user = models.ForeignKey(
         User,

@@ -1,9 +1,10 @@
-from django.contrib.auth import get_user_model
 from rest_framework import serializers
+
+from django.contrib.auth import get_user_model
 
 from recipes.models import Recipe
 
-from .models import Favorites, Purchase
+from .models import Favorite, Purchase
 
 User = get_user_model()
 
@@ -14,24 +15,23 @@ class FavoritORInShopingCart_RecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
-class FavoritesSerializer(serializers.ModelSerializer):
+class FavoriteSerializer(serializers.ModelSerializer):
     recipe = serializers.PrimaryKeyRelatedField(queryset=Recipe.objects.all())
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
 
     class Meta:
-        model = Favorites
+        model = Favorite
         fields = ('user', 'recipe')
 
     def validate(self, data):
-        print(data)
         request = self.context.get('request')
         recipe_id = data['recipe'].id
-        favorite_exists = Favorites.objects.filter(
+        favorite_exists = Favorite.objects.filter(
             user=request.user,
             recipe__id=recipe_id
         ).exists()
 
-        if request.method == 'GET' and favorite_exists:
+        if request.method == 'POST' and favorite_exists:
             raise serializers.ValidationError(
                 'Рецепт уже добавлен в избранное'
             )
@@ -46,8 +46,8 @@ class FavoritesSerializer(serializers.ModelSerializer):
             context=context).data
 
 
-class PurchaseSerializer(FavoritesSerializer):
-    class Meta(FavoritesSerializer.Meta):
+class PurchaseSerializer(FavoriteSerializer):
+    class Meta(FavoriteSerializer.Meta):
         model = Purchase
 
     def validate(self, data):
@@ -58,7 +58,7 @@ class PurchaseSerializer(FavoritesSerializer):
             recipe__id=recipe_id
         ).exists()
 
-        if request.method == 'GET' and purchase_exists:
+        if request.method == 'POST' and purchase_exists:
             raise serializers.ValidationError(
                 'Рецепт уже в списке покупок'
             )
