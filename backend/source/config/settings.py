@@ -4,7 +4,11 @@ from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-DEBUG = False
+DEBUG = True
+
+WHICH_DB_FOR_DEBUG = 'sqlite3'
+# WHICH_DB_FOR_DEBUG = 'postgresql'
+
 
 if DEBUG:
     env_path = os.path.join(os.path.join(os.path.dirname(os.path.dirname(BASE_DIR)), 'infra'), '.env')
@@ -42,25 +46,30 @@ MEDIA_URL = '/media_backend/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media-backend')
 # MEDIAILES_DIRS = [os.path.join(BASE_DIR, 'media')]
 
-# Тут костыль - Запускаю локально с postgresal в контейнере
-# if not DEBUG:
-#     DATABASES = {
-#         "default": {
-#             "ENGINE": "django.db.backends.sqlite3",
-#             "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
-#         }
-#     }
-# else:
-DATABASES = {
-    "default": {
-        "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
-        "NAME": os.getenv("DB_NAME", default="default"),
-        "USER": os.getenv("POSTGRES_USER", default="default"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="default"),
-        "HOST": DB_HOST,
-        "PORT": os.getenv("DB_PORT", default="default")
+
+POSTGRESQL_DB = {
+        "default": {
+            "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
+            "NAME": os.getenv("DB_NAME", default="default"),
+            "USER": os.getenv("POSTGRES_USER", default="default"),
+            "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="default"),
+            "HOST": DB_HOST,
+            "PORT": os.getenv("DB_PORT", default="default")
+        }
     }
-}
+
+if DEBUG:
+    if WHICH_DB_FOR_DEBUG == 'sqlite3':
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+            }
+        }
+    elif WHICH_DB_FOR_DEBUG == 'postgresql':
+        DATABASES = POSTGRESQL_DB
+else:
+    DATABASES = POSTGRESQL_DB
 
 AUTH_USER_MODEL = 'users.User'
 

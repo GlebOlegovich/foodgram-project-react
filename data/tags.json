@@ -1,0 +1,37 @@
+[
+    {
+        "name": "Обед",
+        "color": "#8B008B",
+        "slug": "dinner"
+    },
+    {
+        "name": "Завтрак",
+        "color": "#F0E68C",
+        "slug": "breakfast"
+    },
+    {
+        "name": "Ужин",
+        "color": "#00008B",
+        "slug": "evening_meal"
+    },
+    {
+        "name": "Десерт",
+        "color": "#FF1493",
+        "slug": "dessert"
+    },
+    {
+        "name": "Супы",
+        "color": "#DC143C",
+        "slug": "soups"
+    },
+    {
+        "name": "Жаркое",
+        "color": "#FF4500",
+        "slug": "roast"
+    },
+    {
+        "name": "Салат",
+        "color": "#3CB371",
+        "slug": "salad"
+    }
+]

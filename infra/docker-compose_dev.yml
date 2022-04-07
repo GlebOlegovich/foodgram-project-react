@@ -2,15 +2,15 @@
 version: '3.3'
 services:
 
-  db:
-    image: postgres:14.2-alpine
+  # db:
+  #   image: postgres:14.2-alpine
 
-    volumes:
-      - dbdata_dev:/var/lib/postgresql/data
-    env_file:
-      - ./.env
-    ports:
-      - "5432:5432"
+  #   volumes:
+  #     - dbdata_dev:/var/lib/postgresql/data
+  #   env_file:
+  #     - ./.env
+  #   ports:
+  #     - "5432:5432"
 
   frontend:
     build:
@@ -18,8 +18,8 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
-    depends_on:
-      - db
+    # depends_on:
+    #   - db
 
   nginx:
     image: nginx:1.21.6
