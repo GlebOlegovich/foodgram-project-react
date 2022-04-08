@@ -9,7 +9,7 @@ User = get_user_model()
 
 class Ingredient(models.Model):
     name = models.CharField(
-        'Название ингридиента',
+        'Название ингредиента',
         max_length=200,
     )
     measurement_unit = models.CharField(
@@ -164,3 +164,65 @@ class IngredientInRecipe(models.Model):
             f"{self.ingredient} в рецепте {self.recipe} - {self.amount} "
             f"{self.ingredient.measurement_unit}"
         )
+
+
+class Favorite(models.Model):
+    """ Избранное """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='favorites',
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='favorites',
+    )
+    date_added = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата добавления',
+    )
+
+    class Meta:
+        ordering = ('-date_added',)
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранное'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'], name='favorite_user_recept_unique'
+            )
+        ]
+
+    def __str__(self):
+        return f'Рецепт {self.recipe} в избранном у {self.user}'
+
+
+class Purchase(models.Model):
+    """ Покупки """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='purchases',
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='purchases',
+    )
+    date_added = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата добавления',
+    )
+
+    class Meta:
+        ordering = ('-date_added',)
+        verbose_name = 'Покупка'
+        verbose_name_plural = 'Покупки'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'], name='purchase_user_recipe_unique'
+            )
+        ]
+
+    def __str__(self):
+        return f'Рецепт {self.recipe} в списке покупок {self.user}'

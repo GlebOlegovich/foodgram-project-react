@@ -1,0 +1,171 @@
+name: Django-app workflow
+
+on: [push]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    -
+      uses: actions/checkout@v2
+
+    -
+      name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+
+    - 
+      name: Install dependencies
+      run: | 
+        python -m pip install --upgrade pip 
+        pip install flake8 pep8-naming flake8-broken-line flake8-return flake8-isort
+    - 
+      id: run_tests
+      name: Test with flake8
+      run: |
+        cd backend/
+        python -m flake8
+    # - 
+    #   name: Pytest
+    #   run: |
+    #     pytest
+    - 
+      name: Send message if Tests failed
+      if: ${{ failure() }}
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_TO }}
+        token: ${{ secrets.TELEGRAM_TOKEN }}
+          # ${{ steps.run_tests.outcome }}
+          # ${{steps.run_tests.conclusion}}
+        message: |
+          Ошибка при тестировании - ${{ github.repository }}
+          https://github.com/${{ github.repository }}actions/runs/${{ github.run_id }}
+          
+  build_and_push_to_docker_hub:
+    name: Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    needs: tests
+    steps:
+    - 
+      name: Check out the repo
+      uses: actions/checkout@v2
+
+    - 
+      name: Login to Docker 
+      uses: docker/login-action@v1 
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - 
+      name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - 
+      name: Push backend to Docker Hub
+      uses: docker/build-push-action@v2 
+      with:
+        context: backend/
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_backend:latest
+    - 
+      name: Push frontend to Docker Hub
+      uses: docker/build-push-action@v2 
+      with:
+        context: frontend/
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_frontend:latest
+    - 
+      name: Send message if build_and_push_to_docker_hub failed
+      if: ${{ failure() }}
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_TO }}
+        token: ${{ secrets.TELEGRAM_TOKEN }}
+        message: |
+          Ошибка при сборке/отправке образа на DockerHub  - ${{ github.repository }}
+          https://github.com/${{ github.repository }}actions/runs/${{ github.run_id }}
+  
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build_and_push_to_docker_hub
+    if: 
+        github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && contains('refs/heads/Production', github.ref)
+
+    # if:
+    #   contains('
+    #     refs/heads/main
+    #     refs/heads/master
+    #     refs/heads/Production
+    #     refs/heads/Developing
+    #   ', github.ref)
+
+    steps:
+    - 
+      name: executing remote ssh commands to deploy
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST_SERVER }}
+        username: ${{ secrets.USER_SERVER }}
+        key: ${{ secrets.SSH_KEY }}
+        passphrase: ${{ secrets.PASSPHRASE_SERVER }}
+        script: |
+          cd app/foodgram-project-react/
+
+          # Можем не пулить по идее, это итак запулится в докер компоуз, если надо будет
+          # sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram_backend:latest
+          # sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram_frontend:latest
+
+          # sudo docker-compose down -v 
+          sudo docker-compose down
+
+          # Руками залю лучше .env
+          # rm .env -f
+          # touch .env
+          # echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
+          # echo DB_NAME=${{ secrets.DB_NAME }} >> .env
+          # echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
+          # echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
+          # echo DB_HOST=${{ secrets.DB_HOST }} >> .env
+          # echo DB_PORT=${{ secrets.DB_PORT }} >> .env
+
+          sudo docker-compose up -d 
+          # sudo docker cp data/ infra_backend_1:.
+
+          sudo docker-compose exec -T backend python manage.py migrate
+          # echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('${{ secrets.ADMIN_USERNAME }}', 'example@example.com', '${{ secrets.ADMIN_PASSWORD }}')" | sudo docker-compose exec -T backend python manage.py shell
+
+          # Создание суперюзеров, если еще не созданы
+          echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='${{ secrets.ADMIN_USERNAME }}').exists() or User.objects.create_superuser('${{ secrets.ADMIN_USERNAME }}', 'i@godleib.ru', '${{ secrets.ADMIN_PASSWORD }}')" | sudo docker-compose exec -T backend python manage.py shell
+          echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', 'admin@example.com', 'admin')" | sudo docker-compose exec -T backend python manage.py shell
+          
+          # Заливаем первичные данные (теги и ингредиенты)
+          sudo docker-compose exec -T backend python manage.py impirt_initial_data
+
+          # без -T была ошибка с TTY связанная
+          sudo docker-compose exec -T backend python manage.py collectstatic --no-input
+
+          # Удаляем старые образы
+          sudo docker system prune -af
+          # Удаляем старые тома
+          sudo docker volume prune -f
+
+
+  send_message:
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+    - 
+      name: send message
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_TO }}
+        token: ${{ secrets.TELEGRAM_TOKEN }}
+        message: |
+            Твой коммит в ${{ github.repository }} успешно прошел все тесты и задеплоен.
+            Комментарий успешного комита: ${{ github.event.commits[0].message }}
+            
+            Просмотр изменений: https://github.com/${{ github.repository }}/commit/${{github.sha}}

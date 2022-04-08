@@ -1,15 +1,11 @@
 from rest_framework.routers import DefaultRouter
 
 from django.conf import settings
-# from django.conf.urls import url
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path, re_path
 
-from authentication.views import UpdatePassword
 from recipes.views import IngredientViewSet, RecipeViewSet, TagViewSet
-
-from .settings import DEBUG
 
 router = DefaultRouter()
 router.register(
@@ -38,15 +34,14 @@ urlpatterns = [
 ]
 
 urlpatterns += [re_path('api/', include([
-    path("users/set_password/", UpdatePassword.as_view(), name="set_password"),
     path('users/', include('users.urls'), name='users'),
 
-    path('auth/', include('authentication.urls'), name='auth'),
+    path('auth/', include('djoser.urls.authtoken'), name='auth'),
 
     path('', include(router.urls)),
 ]))]
 
-if DEBUG:
+if settings.DEBUG:
     # Для дев режима с контейнерами
     urlpatterns += static(
         settings.MEDIA_URL,

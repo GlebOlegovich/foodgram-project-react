@@ -14,15 +14,14 @@ from django.db.models import Exists, OuterRef
 from django.http.response import HttpResponse
 
 from config.settings import BASE_DIR
-from favs_n_shopping.models import Favorite, Purchase
-from favs_n_shopping.serializers import FavoriteSerializer, PurchaseSerializer
 
 from .filters import IngredientFilter, RecipeFilter
 from .mixins import AddOrDeleteRecipeFromFavOrShoppingModelMixin
-from .models import Ingredient, Recipe, Tag
+from .models import Favorite, Ingredient, Purchase, Recipe, Tag
 from .paginators import RecipesCustomPagination
 from .permissions import IsOwnerOrReadOnly
-from .serializers import (IngredientSerializer, RecipeCreateSerializer,
+from .serializers import (FavoriteSerializer, IngredientSerializer,
+                          PurchaseSerializer, RecipeCreateSerializer,
                           RecipeListSerializer, TagSerializer)
 
 User = get_user_model()
@@ -87,6 +86,124 @@ class RecipeViewSet(mixins.ListModelMixin,
             return RecipeListSerializer
         return RecipeCreateSerializer
 
+    @action(
+        detail=True, methods=['post', ],
+        permission_classes=[IsAuthenticated]
+    )
+    def favorite(self, request, id=None):
+        return self.adding_recipe_to_model_with_serializer(
+            request=request,
+            root_serializer=FavoriteSerializer,
+            recipe_id=id
+        )
+
+    # https://stackoverflow.com/questions/62084905/
+    # how-to-make-delete-method-in-django-extra-action
+    @favorite.mapping.delete
+    def delete_favorite(self, request, id=None):
+        return self.delete_recipe_from_model(
+            model=Favorite,
+            request=request,
+            recipe_id=id
+        )
+
+    @action(
+        detail=True, methods=['post', ],
+        permission_classes=[IsAuthenticated]
+    )
+    def shopping_cart(self, request, id=None):
+        return self.adding_recipe_to_model_with_serializer(
+            request=request,
+            root_serializer=PurchaseSerializer,
+            recipe_id=id
+        )
+
+    @shopping_cart.mapping.delete
+    def delete_shopping_cart(self, request, id=None):
+        return self.delete_recipe_from_model(
+            model=Purchase,
+            request=request,
+            recipe_id=id
+        )
+
+    @action(
+        detail=False,
+        methods=['GET'],
+        permission_classes=[IsAuthenticated]
+    )
+    def download_shopping_cart(self, request):
+        shopping_list = request.user._get_user_shopping_cart()
+
+        if shopping_list is None:
+            error = {'errors': 'Список рецептов пуст'}
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
+        recipes = [recipe for recipe in shopping_list['recipes_in_cart']]
+        purchases = shopping_list['purchases']
+        response = HttpResponse(
+            content_type='application/pdf'
+        )
+        response['Content-Disposition'] = (
+            'attachment; '
+            'filename="shopping_cart.pdf"'
+        )
+        canvas = Canvas(response)
+
+        pdfmetrics.registerFont(TTFont('FontPDF', FONT_PATH))
+        canvas.setFont('FontPDF', 50)
+        canvas.drawString(
+            100, 750,
+            "Список покупок, для рецептов:"
+        )
+        canvas.setFont('FontPDF', 30)
+        canvas.drawString(
+            100, 700,
+            f"{', '.join(recipes)}"
+        )
+        canvas.setFont('FontPDF', 30)
+        counter = itertools.count(650, -50)
+        for item in purchases:
+
+            height = next(counter)
+            canvas.drawString(
+                50, height,
+                f"-  {item['ingredient_name']} "
+                f"- {item['ingredient_amount']}"
+                f"{item['ingredient_measurement_unit']}"
+            )
+        canvas.save()
+
+        request.user._clean_up_shopping_cart()
+        return response
+
+    # !!!!!!!!!!!!
+    # НЕ юзаем, пытался сделать через xhtm2pdf, мб еще допилю...
+    # !!!!!!!!!!!!
+
+    # Пытался выполнить все через xhtml2pdf...
+    # PDF из шаблона делается, но вместо кириллицы - квадраты...
+    # @action(
+    #     detail=False, methods=['get', ],
+    #     # permission_classes=[IsAuthenticated])
+    #     permission_classes=[AllowAny])
+    # def download_shopping_cart(self, request):
+    #     user = User.objects.get(id=1)
+    #     # shopping_list = request.user._get_user_shopping_cart
+    #     shopping_list = user._get_user_shopping_cart
+    #     # for item in shopping_list['purchases']:
+    #     #     print(shopping_list['purchases'][item])
+    #     # shopping_list = []
+    #     # for item in list:
+    #     #     shopping_list.append(f'{item} - {list[item]["amount"]} '
+    #     #                          f'{list[item]["measurement_unit"]} \n')
+    #    response = HttpResponse(shopping_list, 'Content-Type: text/plain')
+    #     # response['Content-Disposition'] = (
+    #     #     'attachment; filename="shoplist.txt"'
+    #     # )
+
+    #     # return response
+    #     return render_pdf_view(shopping_list)
+
     # !!!!!!!!!!!!
     # НЕ юзаем, вместо этого фильтрация в фильтрах
     # !!!!!!!!!!!!
@@ -139,122 +256,3 @@ class RecipeViewSet(mixins.ListModelMixin,
         return queryset.select_related('author').prefetch_related(
             'tags', 'ingredients'
         )
-
-    @action(
-        detail=True, methods=['post', ],
-        permission_classes=[IsAuthenticated]
-    )
-    def favorite(self, request, id=None):
-        return self.adding_recipe_to_model_with_serializer(
-            request=request,
-            root_serializer=FavoriteSerializer,
-            recipe_id=id
-        )
-
-    # https://stackoverflow.com/questions/62084905/
-    # how-to-make-delete-method-in-django-extra-action
-    @favorite.mapping.delete
-    def delete_favorite(self, request, id=None):
-        return self.delete_recipe_from_model(
-            model=Favorite,
-            request=request,
-            recipe_id=id
-        )
-
-    @action(
-        detail=True, methods=['post', ],
-        permission_classes=[IsAuthenticated]
-    )
-    def shopping_cart(self, request, id=None):
-        return self.adding_recipe_to_model_with_serializer(
-            request=request,
-            root_serializer=PurchaseSerializer,
-            recipe_id=id
-        )
-
-    @shopping_cart.mapping.delete
-    def delete_shopping_cart(self, request, id=None):
-        return self.delete_recipe_from_model(
-            model=Purchase,
-            request=request,
-            recipe_id=id
-        )
-
-    # !!!!!!!!!!!!
-    # НЕ юзаем, пытался сделать через xhtm2pdf, мб еще допилю...
-    # !!!!!!!!!!!!
-
-    # Пытался выполнить все через xhtml2pdf...
-    # PDF из шаблона делается, но вместо кириллицы - квадраты...
-    # @action(
-    #     detail=False, methods=['get', ],
-    #     # permission_classes=[IsAuthenticated])
-    #     permission_classes=[AllowAny])
-    # def download_shopping_cart(self, request):
-    #     user = User.objects.get(id=1)
-    #     # shopping_list = request.user._get_user_shopping_cart
-    #     shopping_list = user._get_user_shopping_cart
-    #     # for item in shopping_list['purchases']:
-    #     #     print(shopping_list['purchases'][item])
-    #     # shopping_list = []
-    #     # for item in list:
-    #     #     shopping_list.append(f'{item} - {list[item]["amount"]} '
-    #     #                          f'{list[item]["measurement_unit"]} \n')
-    #    response = HttpResponse(shopping_list, 'Content-Type: text/plain')
-    #     # response['Content-Disposition'] = (
-    #     #     'attachment; filename="shoplist.txt"'
-    #     # )
-
-    #     # return response
-    #     return render_pdf_view(shopping_list)
-
-    @action(
-        detail=False,
-        methods=['GET'],
-        permission_classes=[IsAuthenticated]
-    )
-    def download_shopping_cart(self, request):
-        shopping_list = request.user._get_user_shopping_cart()
-
-        if shopping_list is None:
-            error = {'errors': 'Список рецептов пуст'}
-            return Response(error, status=status.HTTP_400_BAD_REQUEST)
-
-        recipes = [recipe for recipe in shopping_list['recipes_in_cart']]
-        purchases = shopping_list['purchases']
-        response = HttpResponse(
-            content_type='application/pdf'
-        )
-        response['Content-Disposition'] = (
-            'attachment; '
-            'filename="shopping_cart.pdf"'
-        )
-        canvas = Canvas(response)
-
-        pdfmetrics.registerFont(TTFont('FontPDF', FONT_PATH))
-        canvas.setFont('FontPDF', 50)
-        canvas.drawString(
-            100, 750,
-            "Список покупок, для рецептов:"
-        )
-        canvas.setFont('FontPDF', 30)
-        canvas.drawString(
-            100, 700,
-            f"{', '.join(recipes)}"
-        )
-        canvas.setFont('FontPDF', 30)
-        counter = itertools.count(650, -50)
-        for item in purchases:
-
-            height = next(counter)
-            canvas.drawString(
-                50, height,
-                f"-  {item['ingredient_name']} "
-                f"- {item['ingredient_amount']}"
-                f"{item['ingredient_measurement_unit']}"
-            )
-        canvas.save()
-
-        request.user._clean_up_shopping_cart()
-
-        return response

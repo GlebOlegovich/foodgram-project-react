@@ -6,7 +6,6 @@ import recipes as recipes
 from config.settings import GLOBAL_SETTINGS
 
 from .managers import CustomUserManager
-# from recipes.models import IngredientInRecipe
 from .validators import (NotDeletedUsernameValidator, NotMeUsernameValidator,
                          UsernameValidator)
 
@@ -120,11 +119,10 @@ class User(AbstractUser):
             ingredient_amount=Sum('amount'),
         ).order_by('ingredient_name')
 
-        list = {
+        return {
             'recipes_in_cart': user_recipes_for_shopping,
             'purchases': shopping_cart
         }
-        return list
 
     def __str__(self) -> str:
         return self.username

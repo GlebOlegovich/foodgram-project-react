@@ -4,13 +4,19 @@ from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-DEBUG = True
+DEBUG = False
+
+WHICH_DB_FOR_DEBUG = 'sqlite3'
+# WHICH_DB_FOR_DEBUG = 'postgresql'
+
 
 if DEBUG:
     env_path = os.path.join(os.path.join(os.path.dirname(os.path.dirname(BASE_DIR)), 'infra'), '.env')
     load_dotenv(env_path)
+    DB_HOST = 'localhost'
 else:
     load_dotenv()
+    DB_HOST = os.getenv("DB_HOST", default="localhost")
 
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -19,17 +25,53 @@ ALLOWED_HOSTS = ["*"]
 
 CSRF_TRUSTED_ORIGINS = [
     'https://*', 'https://*localhost', 'https://*.127.0.0.1',
-    'http://*', 'http://*localhost', 'http://*.127.0.0.1'
+    'http://*', 'http://*localhost', 'http://*.127.0.0.1',
+    'http://gudleifr.ru', 'http://51.250.79.6',
 ]
 
 INTERNAL_IPS = [
     '127.0.0.1',
+    'localhost',
     '127.0.0.1:8000',
     'localhost:8000'
 ]
 
-AUTH_USER_MODEL = 'users.User'
+# if DEBUG:
+STATIC_URL = '/static_backend/'
+# else:
+#     STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static-backend')
+# STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
+MEDIA_URL = '/media_backend/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media-backend')
+# MEDIAILES_DIRS = [os.path.join(BASE_DIR, 'media')]
+
+POSTGRESQL_DB = {
+    "default": {
+        "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
+        "NAME": os.getenv("DB_NAME", default="default"),
+        "USER": os.getenv("POSTGRES_USER", default="default"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="default"),
+        "HOST": DB_HOST,
+        "PORT": os.getenv("DB_PORT", default="default")
+    }
+}
+
+if DEBUG:
+    if WHICH_DB_FOR_DEBUG == 'sqlite3':
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+            }
+        }
+    elif WHICH_DB_FOR_DEBUG == 'postgresql':
+        DATABASES = POSTGRESQL_DB
+else:
+    DATABASES = POSTGRESQL_DB
+
+AUTH_USER_MODEL = 'users.User'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -40,16 +82,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
-    # 'rest_framework_swagger',
     'rest_framework.authtoken',
     'django_filters',
     'djoser',
     'debug_toolbar',
 
-    'authentication',
     'users',
     'recipes',
-    'favs_n_shopping',
 ]
 
 MIDDLEWARE = [
@@ -86,27 +125,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Тут костыль - Запускаю локально с postgresal в контейнере
-# if not DEBUG:
-#     DATABASES = {
-#         "default": {
-#             "ENGINE": "django.db.backends.sqlite3",
-#             "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
-#         }
-#     }
-# else:
-DATABASES = {
-    "default": {
-        "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
-        "NAME": os.getenv("DB_NAME", default="default"),
-        "USER": os.getenv("POSTGRES_USER", default="default"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="default"),
-        "HOST": os.getenv("DB_HOST", default="default"),
-        "PORT": os.getenv("DB_PORT", default="default")
-    }
-}
-
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -137,7 +155,6 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
 
 }
-
 
 LANGUAGE_CODE = 'ru-ru'
 
@@ -175,11 +192,3 @@ GLOBAL_SETTINGS = {
     # "moderator": "moderator",
     "user": "user",
 }
-
-STATIC_URL = '/static-backend/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-# STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-# MEDIAILES_DIRS = [os.path.join(BASE_DIR, 'media')]

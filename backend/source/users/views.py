@@ -9,10 +9,46 @@ from django.shortcuts import get_object_or_404
 
 from .mixins import CreateUserMixin
 from .paginators import UsersCustomPagination
-from .serializers import (FollowerSerializer, UserInfoSerialiser,
-                          UserRegistrationSerializer, UsersListSerialiser)
+from .serializers_follow import FollowerSerializer
+from .serializers_user import (ChangePasswordSerializer, UserInfoSerialiser,
+                               UserRegistrationSerializer, UsersListSerialiser)
 
 User = get_user_model()
+
+
+class UpdatePassword(APIView):
+    '''
+        Смена пасса. Post запрос.
+    '''
+    permission_classes = (IsAuthenticated, )
+
+    def _get_object(self, queryset=None):
+        return self.request.user
+
+    def post(self, request, *args, **kwargs):
+        self.object = self._get_object()
+        serializer = ChangePasswordSerializer(data=request.data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+            # Проверка старого пароля
+            current_password = serializer.validated_data.get(
+                "current_password"
+            )
+            if not self.object.check_password(current_password):
+                return Response({"current_password": ["Неверный пароль!"]},
+                                status=status.HTTP_400_BAD_REQUEST)
+            # set_password хэширует пасс юзера!
+            self.object.set_password(
+                serializer.validated_data.get("new_password")
+            )
+            self.object.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 @action(detail=True, methods=["LIST", "POST"])
@@ -20,23 +56,22 @@ class UserViewSet(mixins.ListModelMixin,
                   mixins.RetrieveModelMixin,
                   CreateUserMixin,
                   viewsets.GenericViewSet):
-    # lookup_field = "pk"
+    # Рскоментил!
+    lookup_field = "pk"
     lookup_url_kwarg = "id"
     permission_classes = (AllowAny,)
     queryset = User.objects.all()
-    # serializer_class = UsersListSerialiser
     pagination_class = UsersCustomPagination
 
     def get_serializer_class(self):
-        # Было бы круто сделать переадресацию, по типу:
-        # Запрос от юзера с id = 3, на страницу users/3
-        # Что бы редиректило на users/me
         if self.action in ("me"):
             return UserInfoSerialiser
-        elif self.action in ("list", "retrieve", "me"):
-            return UsersListSerialiser
         elif self.action in ("create",):
             return UserRegistrationSerializer
+
+        # elif self.action in ("list", "retrieve", "me"):
+        else:
+            return UsersListSerialiser
 
     def retrieve(self, request, *args, **kwargs):
         if (
@@ -212,8 +247,6 @@ class ListSubscriptions(generics.ListAPIView):
         user = self.request.user
 
         user_is_follower = user.follower.all()
-        followings = User.objects.filter(
-            id__in=user_is_follower.values('author')).all()
-        # или так
-        # followings = Follow.objects.filter(user=user).all()
-        return followings
+        return User.objects.filter(
+            id__in=user_is_follower.values('author')
+        ).all()
