@@ -3,17 +3,17 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
 from recipes.models import Recipe
-from recipes.serializers import FavoritORInShopingCart_RecipeSerializer
+from recipes.serializers import FavoritORInShopingCartRecipeSerializer
 
 from .models import Follow
 
 User = get_user_model()
 
 # Пришлось сделать это отдельным файлом, потому что я тут
-# импортирую FavoritORInShopingCart_RecipeSerializer,
+# импортирую FavoritORInShopingCartRecipeSerializer,
 # а в recipes.serializers импортируется UsersListSerialiser
 # из serializers_user (бывшего serializers) и был циклический импорт...
-# ImportError: cannot import name 'FavoritORInShopingCart_RecipeSerializer'
+# ImportError: cannot import name 'FavoritORInShopingCartRecipeSerializer'
 #  from partially initialized module 'recipes.serializers'
 # (most likely due to a circular import)
 
@@ -60,7 +60,7 @@ class FollowerSerializer(serializers.ModelSerializer):
                 author=obj
             )[:int(limit)]
 
-        return FavoritORInShopingCart_RecipeSerializer(
+        return FavoritORInShopingCartRecipeSerializer(
             queryset, many=True
         ).data
 

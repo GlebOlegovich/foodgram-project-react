@@ -38,9 +38,9 @@ jobs:
       with:
         to: ${{ secrets.TELEGRAM_TO }}
         token: ${{ secrets.TELEGRAM_TOKEN }}
+          # ${{ steps.run_tests.outcome }}
+          # ${{steps.run_tests.conclusion}}
         message: |
-          ${{ steps.run_tests.outcome }}
-          ${{steps.run_tests.conclusion}}
           Ошибка при тестировании - ${{ github.repository }}
           https://github.com/${{ github.repository }}actions/runs/${{ github.run_id }}
           

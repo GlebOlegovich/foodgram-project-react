@@ -1,7 +1,7 @@
 from tqdm import tqdm
 
 
-def insert_data_to_DB(data, model):
+def insert_data_to_db(data, model):
     new_items_count = 0
     valid_data = []
 

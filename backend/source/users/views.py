@@ -66,10 +66,12 @@ class UserViewSet(mixins.ListModelMixin,
     def get_serializer_class(self):
         if self.action in ("me"):
             return UserInfoSerialiser
-        elif self.action in ("list", "retrieve", "me"):
-            return UsersListSerialiser
         elif self.action in ("create",):
             return UserRegistrationSerializer
+
+        # elif self.action in ("list", "retrieve", "me"):
+        else:
+            return UsersListSerialiser
 
     def retrieve(self, request, *args, **kwargs):
         if (
@@ -245,6 +247,6 @@ class ListSubscriptions(generics.ListAPIView):
         user = self.request.user
 
         user_is_follower = user.follower.all()
-        followings = User.objects.filter(
-            id__in=user_is_follower.values('author')).all()
-        return followings
+        return User.objects.filter(
+            id__in=user_is_follower.values('author')
+        ).all()

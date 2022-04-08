@@ -119,11 +119,10 @@ class User(AbstractUser):
             ingredient_amount=Sum('amount'),
         ).order_by('ingredient_name')
 
-        list = {
+        return {
             'recipes_in_cart': user_recipes_for_shopping,
             'purchases': shopping_cart
         }
-        return list
 
     def __str__(self) -> str:
         return self.username

@@ -35,8 +35,7 @@ class UsersListSerialiser(serializers.ModelSerializer):
         ):
             # Вообще наверное это плохая реализация,
             # каждый раз запрашиваем из БД
-            user_follows = request.user.follower.filter(author=obj).exists()
-            return user_follows
+            return request.user.follower.filter(author=obj).exists()
         else:
             # Я хз что еще возвращать, если не авторизован
             return False
@@ -80,7 +79,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def save(self, *args, **kwargs):
         # Проверяем на валидность пароль
         password = self.validated_data["password"]
-        user = User.objects.create_user(
+        return User.objects.create_user(
             email=self.validated_data["email"],
             username=self.validated_data["username"],
             first_name=self.validated_data["first_name"],
@@ -98,4 +97,3 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         # # Сохраняем пароль
         # user.set_password(password)
         # user.save()
-        return user
