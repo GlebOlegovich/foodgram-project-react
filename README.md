@@ -22,3 +22,6 @@ password = admin
 ```
 ## Пример выгрузки папки data, на сервер
 ``` scp -r data/ USER_SERVER@HOST_SERVER:apps/foodgram-project-react/ ```
+
+## Попасть в контейнер бэкенда
+```sudo docker-compose exec backend sh```
