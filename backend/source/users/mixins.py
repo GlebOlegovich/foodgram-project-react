@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.mixins import CreateModelMixin
 from rest_framework.response import Response
 
-from .serializers import UserInfoSerialiser
+from .serializers_user import UserInfoSerialiser
 
 
 class CreateUserMixin(CreateModelMixin):

@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-DEBUG = True
+DEBUG = False
 
 WHICH_DB_FOR_DEBUG = 'sqlite3'
 # WHICH_DB_FOR_DEBUG = 'postgresql'
@@ -25,7 +25,8 @@ ALLOWED_HOSTS = ["*"]
 
 CSRF_TRUSTED_ORIGINS = [
     'https://*', 'https://*localhost', 'https://*.127.0.0.1',
-    'http://*', 'http://*localhost', 'http://*.127.0.0.1'
+    'http://*', 'http://*localhost', 'http://*.127.0.0.1',
+    'http://gudleifr.ru',
 ]
 
 INTERNAL_IPS = [
@@ -46,17 +47,16 @@ MEDIA_URL = '/media_backend/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media-backend')
 # MEDIAILES_DIRS = [os.path.join(BASE_DIR, 'media')]
 
-
 POSTGRESQL_DB = {
-        "default": {
-            "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
-            "NAME": os.getenv("DB_NAME", default="default"),
-            "USER": os.getenv("POSTGRES_USER", default="default"),
-            "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="default"),
-            "HOST": DB_HOST,
-            "PORT": os.getenv("DB_PORT", default="default")
-        }
+    "default": {
+        "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
+        "NAME": os.getenv("DB_NAME", default="default"),
+        "USER": os.getenv("POSTGRES_USER", default="default"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="default"),
+        "HOST": DB_HOST,
+        "PORT": os.getenv("DB_PORT", default="default")
     }
+}
 
 if DEBUG:
     if WHICH_DB_FOR_DEBUG == 'sqlite3':
@@ -87,10 +87,8 @@ INSTALLED_APPS = [
     'djoser',
     'debug_toolbar',
 
-    'authentication',
     'users',
     'recipes',
-    'favs_n_shopping',
 ]
 
 MIDDLEWARE = [

@@ -5,10 +5,10 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.db.models import F
 
-from favs_n_shopping.models import Favorite, Purchase
-from users.serializers import UsersListSerialiser
+from users.serializers_user import UsersListSerialiser
 
-from .models import Ingredient, IngredientInRecipe, Recipe, Tag
+from .models import (Favorite, Ingredient, IngredientInRecipe, Purchase,
+                     Recipe, Tag)
 
 User = get_user_model()
 
@@ -35,6 +35,70 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = IngredientInRecipe
         fields = ('id', 'name', 'amount', 'measurement_unit')
+
+
+class FavoritORInShopingCart_RecipeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    recipe = serializers.PrimaryKeyRelatedField(queryset=Recipe.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+
+    class Meta:
+        model = Favorite
+        fields = ('user', 'recipe')
+
+    def validate(self, data):
+        request = self.context.get('request')
+        recipe_id = data['recipe'].id
+        favorite_exists = Favorite.objects.filter(
+            user=request.user,
+            recipe__id=recipe_id
+        ).exists()
+
+        if request.method == 'POST' and favorite_exists:
+            raise serializers.ValidationError(
+                'Рецепт уже добавлен в избранное'
+            )
+
+        return data
+
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        context = {'request': request}
+        return FavoritORInShopingCart_RecipeSerializer(
+            instance.recipe,
+            context=context).data
+
+
+class PurchaseSerializer(FavoriteSerializer):
+    class Meta(FavoriteSerializer.Meta):
+        model = Purchase
+
+    def validate(self, data):
+        request = self.context.get('request')
+        recipe_id = data['recipe'].id
+        purchase_exists = Purchase.objects.filter(
+            user=request.user,
+            recipe__id=recipe_id
+        ).exists()
+
+        if request.method == 'POST' and purchase_exists:
+            raise serializers.ValidationError(
+                'Рецепт уже в списке покупок'
+            )
+
+        return data
+
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        context = {'request': request}
+        return FavoritORInShopingCart_RecipeSerializer(
+            instance.recipe,
+            context=context).data
 
 
 class RecipeListSerializer(serializers.ModelSerializer):
@@ -142,14 +206,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return ingredients
 
     def validate_tags(self, tags):
-        # Т.к. теперь у нас PrimaryKeyRelatedField, проверка не нужна
-        # for tag in tags:
-        #     try:
-        #         get_object_or_404(Tag, id=tag.id)
-        #     except:
-        #         raise serializers.ValidationError(
-        #             'Неизвестный Тег'
-        #         )
+        # Т.к. теперь у нас PrimaryKeyRelatedField, проверка,
+        # что такой тэг есть не нужна
         if len(tags) > len(set(tags)):
             raise serializers.ValidationError(
                 'Повторяющихся тегов в одном рецепе быть не должно!'
@@ -172,14 +230,16 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             # а нам нужен был id
             ingredient_id = ingredient.get('id').id
             amount = ingredient.get('amount')
+
             # Мало ли окажется что уже есть ингредиент в рецепте...
             # Хотя мы их удаляем, перед UPDATE,
             # стоит вообще проверку ставить тут эту?
-            if IngredientInRecipe.objects.filter(
-                recipe=recipe,
-                ingredient=ingredient_id
-            ).exists():
-                continue
+            # @ Михаил - нет
+            # if IngredientInRecipe.objects.filter(
+            #     recipe=recipe,
+            #     ingredient=ingredient_id
+            # ).exists():
+            #     continue
 
             temp_ingredients.append(
                 IngredientInRecipe(

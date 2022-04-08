@@ -16,7 +16,7 @@ class Command(BaseCommand):
             )
             DATA_DIR = os.path.join(
                 os.path.dirname(os.path.dirname(BASE_DIR)),
-                'data'
+                'initial_data'
             )
             json_file = os.path.join(DATA_DIR, filename)
             with open(json_file, "r") as read_file:

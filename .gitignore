@@ -137,4 +137,4 @@ media-backend/
 static/
 static-backend
 .vscode/
-yamdb_workflow.yml
+# foodgram_workflow.yml

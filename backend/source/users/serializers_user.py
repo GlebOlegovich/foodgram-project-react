@@ -1,13 +1,18 @@
 from rest_framework import serializers
 
 from django.contrib.auth import get_user_model
-
-from favs_n_shopping.serializers import FavoritORInShopingCart_RecipeSerializer
-from recipes.models import Recipe
-
-from .models import Follow
+from django.contrib.auth.password_validation import validate_password
 
 User = get_user_model()
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value
 
 
 class UsersListSerialiser(serializers.ModelSerializer):
@@ -94,53 +99,3 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         # user.set_password(password)
         # user.save()
         return user
-
-
-class FollowerSerializer(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField()
-    email = serializers.ReadOnlyField()
-    username = serializers.ReadOnlyField()
-    first_name = serializers.ReadOnlyField()
-    last_name = serializers.ReadOnlyField()
-    # id = serializers.ReadOnlyField(source='author.id')
-    # email = serializers.ReadOnlyField(source='author.email')
-    # username = serializers.ReadOnlyField(source='author.username')
-    # first_name = serializers.ReadOnlyField(source='author.first_name')
-    # last_name = serializers.ReadOnlyField(source='author.last_name')
-    is_subscribed = serializers.SerializerMethodField()
-    recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = (
-            'email', 'id', 'username', 'first_name', 'last_name',
-            'is_subscribed', 'recipes', 'recipes_count'
-        )
-
-    def get_is_subscribed(self, obj):
-        request = self.context.get('request')
-        if not request or request.user.is_anonymous:
-            return False
-        return Follow.objects.filter(
-            user=request.user, author=obj
-        ).exists()
-
-    def get_recipes(self, obj):
-        request = self.context.get('request')
-        limit = request.GET.get('recipes_limit')
-        queryset = Recipe.objects.filter(author=obj).all()
-        if not queryset.exists():
-            return None
-
-        if limit is not None:
-            queryset = Recipe.objects.filter(
-                author=obj
-            )[:int(limit)]
-
-        return FavoritORInShopingCart_RecipeSerializer(
-            queryset, many=True
-        ).data
-
-    def get_recipes_count(self, obj):
-        return Recipe.objects.filter(author=obj).count()

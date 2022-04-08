@@ -4,16 +4,12 @@ from django_filters.rest_framework import FilterSet, filters
 from django.contrib.auth import get_user_model
 from django.db.models import Case, IntegerField, Q, When
 
-from recipes.models import Ingredient, Recipe
+from .models import Ingredient, Recipe
 
 User = get_user_model()
 
 
 class IngredientFilter(FilterSet):
-    # а тут мы говорим что для такого квери параметра name =
-    # у нас для фильртации должны использоваться значения из поля
-    # модели field_name="name"  а сама логика описывается в методе
-    # method="name_filter"
     name = CharFilter(field_name="name", method="name_filter")
 
     class Meta:

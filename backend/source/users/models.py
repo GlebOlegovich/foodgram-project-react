@@ -6,7 +6,6 @@ import recipes as recipes
 from config.settings import GLOBAL_SETTINGS
 
 from .managers import CustomUserManager
-# from recipes.models import IngredientInRecipe
 from .validators import (NotDeletedUsernameValidator, NotMeUsernameValidator,
                          UsernameValidator)
 

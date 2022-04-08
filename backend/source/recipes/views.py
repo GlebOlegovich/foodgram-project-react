@@ -14,15 +14,14 @@ from django.db.models import Exists, OuterRef
 from django.http.response import HttpResponse
 
 from config.settings import BASE_DIR
-from favs_n_shopping.models import Favorite, Purchase
-from favs_n_shopping.serializers import FavoriteSerializer, PurchaseSerializer
 
 from .filters import IngredientFilter, RecipeFilter
 from .mixins import AddOrDeleteRecipeFromFavOrShoppingModelMixin
-from .models import Ingredient, Recipe, Tag
+from .models import Favorite, Ingredient, Purchase, Recipe, Tag
 from .paginators import RecipesCustomPagination
 from .permissions import IsOwnerOrReadOnly
-from .serializers import (IngredientSerializer, RecipeCreateSerializer,
+from .serializers import (FavoriteSerializer, IngredientSerializer,
+                          PurchaseSerializer, RecipeCreateSerializer,
                           RecipeListSerializer, TagSerializer)
 
 User = get_user_model()
