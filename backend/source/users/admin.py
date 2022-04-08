@@ -27,11 +27,7 @@ class UserCreationForm(forms.ModelForm):
         password2 = self.cleaned_data.get('password2')
         if password1 and password2 and password1 != password2:
             raise ValidationError("Passwords don't match")
-
-        # Тут flake ругался на R504 unecessary variable
-        # assignement before return statement. Было:
-        # return password2
-        return self.cleaned_data.get('password2')
+        return password2
 
     def save(self, commit=True):
         user = super().save(commit=False)
