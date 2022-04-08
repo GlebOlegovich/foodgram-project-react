@@ -1,8 +1,16 @@
 name: Django-app workflow
 
-on: [push]
+# on: [push]
+on:
+  pull_request:
+    types: closed
+    branches:
+      - Production
 
 jobs:
+  # Оставлю их тут, но по идее можно убарть, ибо при мердже видно,
+  # прошли ли тесты и был ли выгружен на докерхаб
+
   # tests:
   #   runs-on: ubuntu-latest
 
@@ -89,11 +97,12 @@ jobs:
   #       message: |
   #         Ошибка при сборке/отправке образа на DockerHub  - ${{ github.repository }}
   #         https://github.com/${{ github.repository }}actions/runs/${{ github.run_id }}
-  
+
   deploy:
     runs-on: ubuntu-latest
     # needs: build_and_push_to_docker_hub
-    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true 
+
+    # if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true 
     # && contains('refs/heads/Production', github.ref)
 
     # if:
