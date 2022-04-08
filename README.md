@@ -1,8 +1,11 @@
+![example workflow](https://github.com/GlebOlegovich/yamdb_final/actions/workflows/yamdb_workflow.yml/badge.svg)
 # praktikum_new_diplom
 
 Первый этап - 09.03.2022
 
 Отправка на второе ревью первого этапа - 06.04.2022 (Брал академ, времени было мало на проект, поэтому только сейчас)
+
+Третье ревью - 08.04.2022
 
 На первом этапе проверяется весь код проекта (включая файл зависимостей requirements.txt).
 
@@ -15,6 +18,8 @@
 docker-compose -f docker-compose_dev.yml up и python manage.py runserver
 
 ## Данние для входа в админку, для ознакомления с функционалом
+http://foodgram.gudleifr.ru
+
 ```
 username = admin 
 email = admin@example.com
@@ -22,3 +27,6 @@ password = admin
 ```
 ## Пример выгрузки папки data, на сервер
 ``` scp -r data/ USER_SERVER@HOST_SERVER:apps/foodgram-project-react/ ```
+
+## Попасть в контейнер бэкенда
+```sudo docker-compose exec backend sh```
