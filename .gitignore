@@ -130,3 +130,11 @@ dmypy.json
 
 # .idea
 .idea
+
+backend_old/
+media/
+media-backend/
+static/
+static-backend
+.vscode/
+# foodgram_workflow.yml

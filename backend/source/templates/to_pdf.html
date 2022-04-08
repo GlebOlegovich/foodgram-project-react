@@ -1,0 +1,219 @@
+{% load static %}
+<!doctype html>
+<meta http-equiv="content-type" content="text/html; charset=utf-8"> 
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Sales Report</title>
+    <style type="text/css">
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+        .table, td, th {  
+        border-bottom: 1px solid #ddd;
+        border-top: 1px solid #ddd;
+        text-align: left;
+        }
+
+        .table {
+        border-collapse: collapse;
+        width: 100%;
+
+        }
+
+        .table th, td {
+        padding: 5px;
+        text-align: center;
+        }
+
+        .td{
+        word-break: inherit;
+        }
+
+        .list-group h3{
+            font-size: 3em;
+        }
+        .list-group p {
+            font-size: 1em;
+        }
+
+        .table1 {
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 5px;
+            background-color: #fff;
+            border: none;
+            text-align: center;
+        }
+
+        .table1 td {
+            border: none;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <table class="table1">
+            <td><img src="https://professionalcipher.com/img/logos/django.png" alt="logo" /></td>
+            <td>
+                <div class="list-group">
+                    <h3>Company Report</h3>
+                    <p>Date - упупуп</p>
+                </div>
+            </td>
+        </table>
+        <br/>
+        <table class="table">
+            <thead>
+                <tr>
+                  <th>
+                    #
+                  </th>
+                  <th>
+                    Company Name
+                  </th>
+                  <th>
+                   Name
+                  </th>
+                  <th>
+                    Email
+                  </th>
+                  <th>
+                    Phone
+                  </th>
+                  <th>Status</th>
+                  <th>Created Date </th>
+
+                </tr>
+              </thead>
+              <tbody>
+                {% comment %} {% for users in users %}
+                <tr>
+                  <td>
+                      {{ forloop.counter }}
+                  </td>
+                  <td>
+                    {{ users.userprofile.user_company }}
+
+                 </td>
+
+                  <td>
+                        {{ users.first_name }} {{ users.last_name }}
+                  </td>
+
+                  <td>
+                        {{ users.email }}
+
+                  </td>
+                  <td>{{ users.userprofile.user_phone }}</td>
+                  <td>{{ users.userprofile.user_status }}</td>
+                  <td>{{ users.userprofile.user_created |date:"M d, Y" }}</td>
+
+                </tr>
+                {% endfor %} {% endcomment %}
+              </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>
+
+{% comment %} 
+</body></html>
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">'
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <title>Список покупок</title>
+  </head>
+  <body>
+    <section class="h-100 h-custom">
+        <div class="container h-100 py-5">
+          <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col">
+      
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th scope="col" class="h5">Shopping Bag</th>
+                      <th scope="col">Measurement unit</th>
+                      <th scope="col">Amount</th>
+                    </tr>
+                  </thead>
+                  {% load thumbnail %}
+                  <tbody>
+                    {% for key, value in purchases.items %}
+                    <tr>
+                      <th scope="row">
+                        <div class="d-flex align-items-center">
+                            {{ key }}
+                        </div>
+                      </th>
+                      {% for key_key, value_value in value.items %}
+                      <td class="align-middle">
+                        <p class="mb-0" style="font-weight: 500;">{{ value_value }}</p>
+                      </td>
+                      {% endfor %}
+                      {% comment %} <td class="align-middle">
+                        <p class="mb-0" style="font-weight: 500;">{{ value_value }}</p>
+                      </td> {% endcomment %}
+                    {% comment %} </tr> {% endcomment %}
+                    {% comment %} {% endfor %} {% endcomment %}
+                    {% comment %} <tr>
+                      <th scope="row" class="border-bottom-0">
+                        <div class="d-flex align-items-center">
+                          <img src="https://i.imgur.com/Oj1iQUX.webp" class="img-fluid rounded-3" style="width: 120px;" alt="Book">
+                          <div class="flex-column ms-4">
+                            <p class="mb-2">Homo Deus: A Brief History of Tomorrow</p>
+                            <p class="mb-0">Yuval Noah Harari</p>
+                          </div>
+                        </div>
+                      </th>
+                      <td class="align-middle border-bottom-0">
+                        <p class="mb-0" style="font-weight: 500;">Paperback</p>
+                      </td>
+                      <td class="align-middle border-bottom-0">
+                        <div class="d-flex flex-row">
+                          <button class="btn btn-link px-2"
+                            onclick="this.parentNode.querySelector('input[type=number]').stepDown()">
+                            <i class="fas fa-minus"></i>
+                          </button>
+      
+                          <input id="form1" min="0" name="quantity" value="1" type="number"
+                            class="form-control form-control-sm" style="width: 50px;" />
+      
+                          <button class="btn btn-link px-2"
+                            onclick="this.parentNode.querySelector('input[type=number]').stepUp()">
+                            <i class="fas fa-plus"></i>
+                          </button>
+                        </div>
+                      </td>
+                      <td class="align-middle border-bottom-0">
+                        <p class="mb-0" style="font-weight: 500;">$13.50</p>
+                      </td>
+                    </tr> {% endcomment %}
+                  {% comment %} </tbody>
+                </table>
+              </div>
+      
+            
+      
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+  </body>
+</html> {% endcomment %}
