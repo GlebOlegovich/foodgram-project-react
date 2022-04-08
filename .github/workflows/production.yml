@@ -101,7 +101,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     # needs: build_and_push_to_docker_hub
-    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true 
+
+    # if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true 
     # && contains('refs/heads/Production', github.ref)
 
     # if:
