@@ -123,7 +123,7 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         passphrase: ${{ secrets.PASSPHRASE_SERVER }}
         script: |
-          cd app/foodgram-project-react/
+          cd /home/godleib/apps/foodgram-project-react
 
           # Можем не пулить по идее, это итак запулится в докер компоуз, если надо будет
           # sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram_backend:latest
