@@ -72,7 +72,6 @@ class RecipeViewSet(mixins.ListModelMixin,
                     AddOrDeleteRecipeFromFavOrShoppingModelMixin,
                     viewsets.GenericViewSet):
     permission_classes = [IsOwnerOrReadOnly, ]
-    # serializer_class = RecipeSerializer
     pagination_class = RecipesCustomPagination
     lookup_url_kwarg = "id"
     queryset = Recipe.objects.all()

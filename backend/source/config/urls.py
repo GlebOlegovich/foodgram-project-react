@@ -30,7 +30,6 @@ router.register(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls'))
-    # re_path('api/swagger/', schema_view),
 ]
 
 urlpatterns += [re_path('api/', include([
