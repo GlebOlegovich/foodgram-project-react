@@ -1,4 +1,5 @@
 ![example workflow](https://github.com/GlebOlegovich/yamdb_final/actions/workflows/yamdb_workflow.yml/badge.svg)
+
 [![Python](https://img.shields.io/badge/-Python-464646?style=flat-square&logo=Python)](https://www.python.org/)
 [![Django](https://img.shields.io/badge/-Django-464646?style=flat-square&logo=Django)](https://www.djangoproject.com/)
 [![Django REST Framework](https://img.shields.io/badge/-Django%20REST%20Framework-464646?style=flat-square&logo=Django%20REST%20Framework)](https://www.django-rest-framework.org/)
@@ -12,7 +13,7 @@
 # Проект Foodgram «Продуктовый помощник»
 ![Image](https://raw.githubusercontent.com/GlebOlegovich/foodgram-project-react/Developing/preview.png)
 
-В проекте настроены [[GitHub Actions]](#GitHub%20Actions), которые позволяют использовать все прелести ```CI/CD```
+В проекте настроены [[GitHub Actions]](#GitHub-Actions), которые позволяют использовать все прелести ```CI/CD```
 
 ## Описание
 Кулинарный онлайн-сервис и API для него.
@@ -29,7 +30,9 @@
 - Email: admin@example.com
 
 :one: Все модели доступны в админ-зоне, в том числе редактирование/удаление записей.
+
 :two: На админ-странице рецепта отображается количество добавлений этого рецепта в избранное.
+
 :three: Для модели ингредиентов включена фильтрация по названию.
 
 ## Создание пользователя администратором
@@ -149,7 +152,7 @@ python manage.py impirt_initial_data
 
 В контейнере будут запущены: postgres, nginx, frontend. Backend будет рабоать локально. 
 
-## GitHub Actions
+## GitHub-Actions
 Если внести любые изменения в проект и выполнить:
 ```
 git add .
@@ -166,7 +169,7 @@ git push
 
 - send_message - после сборки и запуска контейнеров происходит отправка сообщения в телеграм об успешном окончании workflow. (В случае каких либо ошибок, отправляется оповешение об ошибках)
 
-### Контакты автора проекта:
+# Контакты автора проекта:
 _Глеб Олегович_
 ---
 **email:** _i@godleib.ru_  
