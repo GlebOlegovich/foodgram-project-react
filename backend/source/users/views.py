@@ -68,8 +68,6 @@ class UserViewSet(mixins.ListModelMixin,
             return UserInfoSerialiser
         elif self.action in ("create",):
             return UserRegistrationSerializer
-
-        # elif self.action in ("list", "retrieve", "me"):
         else:
             return UsersListSerialiser
 
@@ -88,7 +86,6 @@ class UserViewSet(mixins.ListModelMixin,
         detail=False,
         methods=["get", ],
         permission_classes=[IsAuthenticated],
-        # url_name="me"
     )
     def me(self, request):
         user = request.user
@@ -238,8 +235,6 @@ class SubscribeViewset(APIView):
 class ListSubscriptions(generics.ListAPIView):
     """ Список подписок, GET запрос """
     permission_classes = (IsAuthenticated,)
-    # queryset = request.user.objects.following.all()
-    # Надо добавить еще рецепты юзеров что бы выводились
     serializer_class = FollowerSerializer
     pagination_class = UsersCustomPagination
 

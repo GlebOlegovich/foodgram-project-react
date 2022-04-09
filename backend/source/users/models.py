@@ -15,7 +15,6 @@ from .validators import (NotDeletedUsernameValidator, NotMeUsernameValidator,
 # sovremennyj-sposob-sozdanie-polzovatelskoj-modeli-user-v-django/
 class User(AbstractUser):
 
-    # username = LowercaseUsernameField(
     username = models.CharField(
         "Username",
         max_length=150,
