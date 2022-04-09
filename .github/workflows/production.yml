@@ -126,8 +126,8 @@ jobs:
           cd /home/godleib/apps/foodgram-project-react
 
           # Можем не пулить по идее, это итак запулится в докер компоуз, если надо будет
-          # sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram_backend:latest
-          # sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram_frontend:latest
+          sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram_backend:latest
+          sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram_frontend:latest
 
           # sudo docker-compose down -v 
           sudo docker-compose down
@@ -142,7 +142,7 @@ jobs:
           # echo DB_HOST=${{ secrets.DB_HOST }} >> .env
           # echo DB_PORT=${{ secrets.DB_PORT }} >> .env
 
-          sudo docker-compose up -d 
+          sudo docker-compose up -d  --build
           # sudo docker cp data/ infra_backend_1:.
 
           sudo docker-compose exec -T backend python manage.py migrate
