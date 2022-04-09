@@ -90,7 +90,9 @@
 
 #### Клонировать репозиторий на сервер
 ```git clone https://github.com/GlebOlegovich/foodgram-project-react.git```
+
 :shipit: or
+
 ```git clone git@github.com:GlebOlegovich/foodgram-project-react.git```
 
 
