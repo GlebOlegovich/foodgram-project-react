@@ -1,0 +1,19 @@
+sudo certbot certonly --standalone
+    https://certbot.eff.org/instructions?ws=other&os=ubuntufocal 
+_______________________
+
+придется еще с nginx настройками шаманить
+чтобы переадресация была с 443 порта
+
+    # listen 443 ssl; # managed by Certbot
+    # ssl_certificate /etc/letsencrypt/live/мой-домен/fullchain.pem; # managed by Certbot
+    # ssl_certificate_key /etc/letsencrypt/live/мой-домен/privkey.pem; # managed by Certbot
+
+    }
+
+    # redirect to https 
+    # server {
+    #    listen 80;
+    #    server_name мой-домен www.мой-домен xxx.xxx.xxx.xxx;
+    #    return 301 https://$host$request_uri;
+    # }

@@ -14,7 +14,6 @@ class IngredientFilter(FilterSet):
 
     class Meta:
         model = Ingredient
-        # Квери параметр
         fields = ["name"]
 
     # **В качестве усложнения** можно сделать двойную фильтрацию:

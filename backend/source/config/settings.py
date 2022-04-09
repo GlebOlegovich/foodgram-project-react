@@ -6,6 +6,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DEBUG = False
 
+# Выбор БД, которая будет юзаться при дебаге:
+# local sqlite3 или postgresql в доккер контейнере
 WHICH_DB_FOR_DEBUG = 'sqlite3'
 # WHICH_DB_FOR_DEBUG = 'postgresql'
 

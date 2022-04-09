@@ -19,8 +19,8 @@ class Ingredient(models.Model):
 
     class Meta:
         ordering = ['id']
-        verbose_name_plural = 'Ингридиент'
-        verbose_name = 'ингридиенты'
+        verbose_name_plural = 'Ингредиент'
+        verbose_name = 'ингредиенты'
 
     def __str__(self) -> str:
         return self.name
@@ -100,7 +100,6 @@ class Recipe(models.Model):
         Tag,
         related_name="recipes",
         verbose_name='Теги',
-        # on_delete=models.SET_NULL,
     )
     ingredients = models.ManyToManyField(
         Ingredient,

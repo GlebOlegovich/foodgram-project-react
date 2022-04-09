@@ -231,16 +231,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             ingredient_id = ingredient.get('id').id
             amount = ingredient.get('amount')
 
-            # Мало ли окажется что уже есть ингредиент в рецепте...
-            # Хотя мы их удаляем, перед UPDATE,
-            # стоит вообще проверку ставить тут эту?
-            # @ Михаил - нет
-            # if IngredientInRecipe.objects.filter(
-            #     recipe=recipe,
-            #     ingredient=ingredient_id
-            # ).exists():
-            #     continue
-
             temp_ingredients.append(
                 IngredientInRecipe(
                     id=obj_id,
@@ -298,8 +288,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         recipe.image = image
         # Иначе фотка не сохранялась
         recipe.save()
-        # Если тут сделать serializers.ValidationError,
-        # то это, по идее высветится на сайте самом
         return recipe
 
     def update(self, instanse, validated_data):

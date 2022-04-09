@@ -74,7 +74,6 @@ class UserChangeForm(forms.ModelForm):
 class UserAdmin(DjangoUserAdmin):
     # form = UserChangeForm
     add_form = UserCreationForm
-    # change_password_form = UserCreationForm
 
     list_display = (
         'email', 'username', 'first_name',
