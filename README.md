@@ -10,7 +10,7 @@
 [![Yandex.Cloud](https://img.shields.io/badge/-Yandex.Cloud-464646?style=flat-square&logo=Yandex.Cloud)](https://cloud.yandex.ru/)
 
 # Проект Foodgram «Продуктовый помощник»
-![Image](https://github.com/GlebOlegovich/foodgram-project-react/preview.png)
+![Image](https://raw.githubusercontent.com/GlebOlegovich/foodgram-project-react/Developing/preview.png)
 
 В проекте настроены [[GitHub Actions]](#GitHub%20Actions), которые позволяют использовать все прелести ```CI/CD```
 

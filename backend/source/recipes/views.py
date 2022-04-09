@@ -42,7 +42,6 @@ class IngredientViewSet(mixins.ListModelMixin,
     ordering_fields = ('id',)
     lookup_url_kwarg = "id"
 
-
     # Костыльный метод фильтрации)
     # def get_queryset(self):
     #     queryset = Ingredient.objects.all()
