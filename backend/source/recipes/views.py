@@ -165,6 +165,7 @@ class RecipeViewSet(mixins.ListModelMixin,
             output = open(output.name, 'rb')
             response.write(output.read())
 
+        request.user._clean_up_shopping_cart()
         return response
 
     # !!!!!!!!!!!!
