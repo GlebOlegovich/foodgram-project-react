@@ -36,9 +36,11 @@
       </thead>
       <tbody>
         {% for purchase in purchases %}
-          <td>{{ purchase.ingredient_name }}</td>
-          <td>{{ purchase.ingredient_measurement_unit}}</td>
-          <td>{{ purchase.ingredient_amount }}</td>
+          <tr>
+            <td>{{ purchase.ingredient_name }}</td>
+            <td>{{ purchase.ingredient_measurement_unit}}</td>
+            <td>{{ purchase.ingredient_amount }}</td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>
