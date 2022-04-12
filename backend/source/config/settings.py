@@ -26,7 +26,8 @@ ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = [
     'https://*', 'https://*localhost', 'https://*.127.0.0.1',
     'http://*', 'http://*localhost', 'http://*.127.0.0.1',
-    'http://*gudleifr.ru', 'http://51.250.79.6',
+    'http://foodgram.gudleifr.ru', 'http://51.250.79.6',
+    'https://foodgram.gudleifr.ru', 'https://51.250.79.6',
 ]
 
 INTERNAL_IPS = [
