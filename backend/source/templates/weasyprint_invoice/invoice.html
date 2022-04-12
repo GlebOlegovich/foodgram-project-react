@@ -1,0 +1,50 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link href="invoice.css" media="print" rel="stylesheet">
+    <title>Invoice</title>
+    <meta name="description" content="Invoice demo sample">
+  </head>
+
+  <body>
+    <h1>Foodgram</h1>
+
+    <aside>
+      <address id="from">
+        Список покупок.
+      </address>
+
+      <address id="to">
+        Рецепты:
+        {% for recipe in recipes %}
+            {{recipe}}
+        {% endfor %}
+      </address>
+    </aside>
+
+    <dl id="informations">
+      Ваш помошник на кухне...
+    </dl>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Название</th>
+          <th>Единицы измерения</th>
+          <th>Количество</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for purchase in purchases %}
+          <tr>
+            <td>{{ purchase.ingredient_name }}</td>
+            <td>{{ purchase.ingredient_measurement_unit}}</td>
+            <td>{{ purchase.ingredient_amount }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+
+  </body>
+</html>

@@ -140,7 +140,11 @@ python manage.py migrate
 python manage.py collectstatic --no-input
 python manage.py impirt_initial_data
 ```
-
+:eight:
+    Для скачивания PDF списка покупок:
+    [Это уже прописано в докерфайле в backend](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#ubuntu-20-04), но продублируем еще и сюда)
+    
+    ```apt install libpango-1.0-0 libharfbuzz0b libpangoft2-1.0-0```
 
 ### Managment-comands:
 ```python manage.py impirt_initial_data``` - залить в БД ингридиенты,теги итп. Данные должны быть в json формате, назфание файла и модель, в которой будут делаться записи должны быть указаны в ```foodgram-project-react/backend/source/recipes/management/commands/_settings_for_import.py```.
@@ -153,6 +157,17 @@ python manage.py impirt_initial_data
 ```python manage.py runserver```
 
 В контейнере будут запущены: postgres, nginx, frontend. Backend будет рабоать локально. 
+
+Что бы работал рендеринг PDF - [установим необходимые приложения](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#macos) :
+```brew install python pango libffi```
+```
+python3 -m venv venv
+source venv/bin/activate
+pip install weasyprint
+weasyprint --info
+```
+
+Мануал, по использованию weasyprint: [href](https://www.youtube.com/watch?v=_zkYICsIbXI&t=674s)
 
 ## GitHub-Actions
 Если внести любые изменения в проект и выполнить:

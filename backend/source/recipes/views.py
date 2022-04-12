@@ -1,17 +1,16 @@
-import itertools
 import os
+import tempfile
 
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen.canvas import Canvas
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from weasyprint import CSS, HTML
 
 from django.contrib.auth import get_user_model
 from django.db.models import Exists, OuterRef
-from django.http.response import HttpResponse
+from django.http import HttpResponse
+from django.template.loader import render_to_string
 
 from config.settings import BASE_DIR
 
@@ -23,6 +22,11 @@ from .permissions import IsOwnerOrReadOnly
 from .serializers import (FavoriteSerializer, IngredientSerializer,
                           PurchaseSerializer, RecipeCreateSerializer,
                           RecipeListSerializer, TagSerializer)
+
+# from reportlab.pdfbase import pdfmetrics
+# from reportlab.pdfbase.ttfonts import TTFont
+# from reportlab.pdfgen.canvas import Canvas
+
 
 User = get_user_model()
 
@@ -125,83 +129,98 @@ class RecipeViewSet(mixins.ListModelMixin,
             recipe_id=id
         )
 
+    # https://www.youtube.com/watch?v=_zkYICsIbXI&t=674s
     @action(
         detail=False,
         methods=['GET'],
         permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, request):
-        shopping_list = request.user._get_user_shopping_cart()
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Transfer-Encoding'] = 'binary'
 
+        shopping_list = request.user._get_user_shopping_cart()
         if shopping_list is None:
             error = {'errors': 'Список рецептов пуст'}
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
-        recipes = [recipe for recipe in shopping_list['recipes_in_cart']]
-        purchases = shopping_list['purchases']
-        response = HttpResponse(
-            content_type='application/pdf'
-        )
-        response['Content-Disposition'] = (
-            'attachment; '
-            'filename="shopping_cart.pdf"'
-        )
-        canvas = Canvas(response)
+        html_string = render_to_string(
+            'weasyprint_invoice/invoice.html',
+            {
+                'recipes': shopping_list['recipes_in_cart'],
+                'purchases': shopping_list['purchases']
 
-        pdfmetrics.registerFont(TTFont('FontPDF', FONT_PATH))
-        canvas.setFont('FontPDF', 50)
-        canvas.drawString(
-            100, 750,
-            "Список покупок, для рецептов:"
+            }
         )
-        canvas.setFont('FontPDF', 30)
-        canvas.drawString(
-            100, 700,
-            f"{', '.join(recipes)}"
+        css_file = render_to_string(
+            'weasyprint_invoice/invoice.css'
         )
-        canvas.setFont('FontPDF', 30)
-        counter = itertools.count(650, -50)
-        for item in purchases:
+        html = HTML(string=html_string)
+        result = html.write_pdf(stylesheets=[CSS(string=css_file)])
 
-            height = next(counter)
-            canvas.drawString(
-                50, height,
-                f"-  {item['ingredient_name']} "
-                f"- {item['ingredient_amount']}"
-                f"{item['ingredient_measurement_unit']}"
-            )
-        canvas.save()
+        with tempfile.NamedTemporaryFile(delete=True) as output:
+            output.write(result)
+            output.flush()
+            # rb - потому что бинари файл
+            output = open(output.name, 'rb')
+            response.write(output.read())
 
         request.user._clean_up_shopping_cart()
         return response
 
     # !!!!!!!!!!!!
-    # НЕ юзаем, пытался сделать через xhtm2pdf, мб еще допилю...
+    # НЕ ИСПОЛЬЗУЕМ! OLD - через репорт либ
     # !!!!!!!!!!!!
-
-    # Пытался выполнить все через xhtml2pdf...
-    # PDF из шаблона делается, но вместо кириллицы - квадраты...
+    # from reportlab.pdfgen.canvas import Canvas
     # @action(
-    #     detail=False, methods=['get', ],
-    #     # permission_classes=[IsAuthenticated])
-    #     permission_classes=[AllowAny])
-    # def download_shopping_cart(self, request):
-    #     user = User.objects.get(id=1)
-    #     # shopping_list = request.user._get_user_shopping_cart
-    #     shopping_list = user._get_user_shopping_cart
-    #     # for item in shopping_list['purchases']:
-    #     #     print(shopping_list['purchases'][item])
-    #     # shopping_list = []
-    #     # for item in list:
-    #     #     shopping_list.append(f'{item} - {list[item]["amount"]} '
-    #     #                          f'{list[item]["measurement_unit"]} \n')
-    #    response = HttpResponse(shopping_list, 'Content-Type: text/plain')
-    #     # response['Content-Disposition'] = (
-    #     #     'attachment; filename="shoplist.txt"'
-    #     # )
+    #     detail=False,
+    #     methods=['GET'],
+    #     permission_classes=[IsAuthenticated]
+    # )
+    # def download_shopping_cart_old(self, request):
+    #     shopping_list = request.user._get_user_shopping_cart()
 
-    #     # return response
-    #     return render_pdf_view(shopping_list)
+    #     if shopping_list is None:
+    #         error = {'errors': 'Список рецептов пуст'}
+    #         return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
+    #     recipes = [recipe for recipe in shopping_list['recipes_in_cart']]
+    #     purchases = shopping_list['purchases']
+    #     response = HttpResponse(
+    #         content_type='application/pdf'
+    #     )
+    #     response['Content-Disposition'] = (
+    #         'attachment; '
+    #         'filename="shopping_cart.pdf"'
+    #     )
+    #     canvas = Canvas(response)
+
+    #     pdfmetrics.registerFont(TTFont('FontPDF', FONT_PATH))
+    #     canvas.setFont('FontPDF', 50)
+    #     canvas.drawString(
+    #         100, 750,
+    #         "Список покупок, для рецептов:"
+    #     )
+    #     canvas.setFont('FontPDF', 30)
+    #     canvas.drawString(
+    #         100, 700,
+    #         f"{', '.join(recipes)}"
+    #     )
+    #     canvas.setFont('FontPDF', 30)
+    #     counter = itertools.count(650, -50)
+    #     for item in purchases:
+
+    #         height = next(counter)
+    #         canvas.drawString(
+    #             50, height,
+    #             f"-  {item['ingredient_name']} "
+    #             f"- {item['ingredient_amount']}"
+    #             f"{item['ingredient_measurement_unit']}"
+    #         )
+    #     canvas.save()
+
+    #     # request.user._clean_up_shopping_cart()
+    #     return response
 
     # !!!!!!!!!!!!
     # НЕ юзаем, вместо этого фильтрация в фильтрах
