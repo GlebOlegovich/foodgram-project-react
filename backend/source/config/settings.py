@@ -13,8 +13,6 @@ WHICH_DB_FOR_DEBUG = 'sqlite3'
 
 
 if DEBUG:
-    env_path = os.path.join(os.path.join(os.path.dirname(os.path.dirname(BASE_DIR)), 'infra'), '.env')
-    load_dotenv(env_path)
     DB_HOST = 'localhost'
 else:
     load_dotenv()
@@ -48,6 +46,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static-backend')
 MEDIA_URL = '/media_backend/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media-backend')
 # MEDIAILES_DIRS = [os.path.join(BASE_DIR, 'media')]
+
 
 POSTGRESQL_DB = {
     "default": {
