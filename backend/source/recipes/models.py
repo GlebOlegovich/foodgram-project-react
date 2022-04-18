@@ -57,7 +57,11 @@ class Tag(models.Model):
 
 
 def get_sentinel_user():
-    return User.objects.get_or_create(username='deleted')[0]
+    return User.objects.get_or_create(
+        username='deleted_usr',
+        first_name='deleted',
+        last_name='user'
+    )[0]
 
 
 class Recipe(models.Model):
