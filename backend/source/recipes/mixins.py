@@ -19,7 +19,7 @@ class AddOrDeleteRecipeFromFavOrShoppingModelMixin:
             рецепта в избранное/шопинг кард, например
         '''
         user = request.user
-        recipe = recipe = get_object_or_404(Recipe, id=recipe_id)
+        recipe = get_object_or_404(Recipe, id=recipe_id)
 
         data = {
             'user': user.id,

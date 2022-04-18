@@ -290,14 +290,14 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         recipe.save()
         return recipe
 
-    def update(self, instanse, validated_data):
+    def update(self, instance, validated_data):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
 
-        IngredientInRecipe.objects.filter(recipe=instanse).delete()
-        self._add_ingredients_in_recipe(instanse, ingredients)
+        IngredientInRecipe.objects.filter(recipe=instance).delete()
+        self._add_ingredients_in_recipe(instance, ingredients)
 
         # tags - many2many field, .set() устанавливает новые значения всегда
-        instanse.tags.set(tags)
+        instance.tags.set(tags)
 
-        return super().update(instanse, validated_data)
+        return super().update(instance, validated_data)
